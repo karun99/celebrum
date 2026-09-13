@@ -101,7 +101,11 @@ class Ingestor:
         Research OS/OI). Extracts readable content AND any embedded neuron/synapse
         graph JSON so the knowledge graph component survives the move."""
         self._consent(consent)
-        raw = text or open(filename, encoding="utf-8", errors="ignore").read()
+        if text is None:
+            with open(filename, encoding="utf-8", errors="ignore") as fh:
+                raw = fh.read()
+        else:
+            raw = text
         src = source or "matruswara:" + filename.split("/")[-1]
         n = 0
 

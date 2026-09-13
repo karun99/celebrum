@@ -213,3 +213,9 @@ class Store:
     def close(self):
         with self._lock:
             self.conn.close()
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
