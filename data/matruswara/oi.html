@@ -1,0 +1,2646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Neural Research OS · WTUT</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+    <style>
+        /* ============================================================
+           NEURAL RESEARCH OS - COMPLETE STYLING
+           ============================================================ */
+        :root {
+            --bg-primary: #08080f;
+            --bg-secondary: rgba(14, 14, 26, 0.92);
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --bg-input: rgba(0, 0, 0, 0.5);
+            --bg-hover: rgba(255, 255, 255, 0.07);
+            --bg-editor: #0a0a18;
+            --bg-code: #0d0d1a;
+            --text-primary: #f0f0f8;
+            --text-secondary: rgba(255, 255, 255, 0.82);
+            --text-muted: rgba(255, 255, 255, 0.45);
+            --text-dim: rgba(255, 255, 255, 0.2);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-light: rgba(255, 255, 255, 0.03);
+            --accent: #6c8cff;
+            --accent-hover: #8aa8ff;
+            --accent-glow: rgba(108, 140, 255, 0.15);
+            --accent-secondary: #a78bfa;
+            --accent-tertiary: #f472b6;
+            --neuron-color: #ff6b9d;
+            --synapse-color: #6c8cff;
+            --shadow: rgba(0, 0, 0, 0.6);
+            --radius: 1.2rem;
+            --radius-sm: 0.7rem;
+            --font: 'Space Grotesk', sans-serif;
+            --serif: 'Source Serif 4', serif;
+            --mono: 'Fira Code', monospace;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f2f7;
+            --bg-secondary: rgba(255, 255, 255, 0.95);
+            --bg-card: rgba(0, 0, 0, 0.03);
+            --bg-input: rgba(0, 0, 0, 0.05);
+            --bg-editor: #f8f8fc;
+            --bg-code: #f0f0f8;
+            --bg-hover: rgba(0, 0, 0, 0.05);
+            --text-primary: #1a1a2e;
+            --text-secondary: rgba(0, 0, 0, 0.8);
+            --text-muted: rgba(0, 0, 0, 0.5);
+            --text-dim: rgba(0, 0, 0, 0.2);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --border-light: rgba(0, 0, 0, 0.04);
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background var(--transition), color var(--transition);
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        /* ─── Navigation ─── */
+        .glass-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.4rem 0;
+            transition: background var(--transition);
+        }
+
+        .nav-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.3rem 1rem;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .nav-brand .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: radial-gradient(circle at 30% 30%, var(--neuron-color), var(--accent-secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 107, 157, 0.6);
+            }
+        }
+
+        .nav-brand h1 {
+            font-family: var(--serif);
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-style: italic;
+            background: linear-gradient(135deg, #fff 55%, var(--neuron-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-brand span {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            -webkit-text-fill-color: var(--text-muted);
+            display: block;
+            margin-top: -0.15rem;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-actions .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.15rem 0.6rem;
+            border-radius: 60px;
+            font-size: 0.55rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .nav-actions .theme-toggle:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-actions .badge-status {
+            font-size: 0.45rem;
+            background: var(--accent-glow);
+            color: var(--accent);
+            padding: 0.05rem 0.6rem;
+            border-radius: 30px;
+            border: 1px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        /* ─── Hero ─── */
+        .hero-section {
+            padding: 1rem 0 0.6rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 70%);
+            opacity: 0.2;
+            pointer-events: none;
+            animation: heroPulse 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes heroPulse {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 0.15;
+            }
+            100% {
+                transform: scale(1.2) rotate(3deg);
+                opacity: 0.3;
+            }
+        }
+
+        .hero-section .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-section h2 {
+            font-family: var(--serif);
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-weight: 700;
+            font-style: italic;
+            background: linear-gradient(135deg, #fff 35%, var(--accent), var(--neuron-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.2rem;
+        }
+
+        .hero-section p {
+            font-size: clamp(0.65rem, 0.8vw, 0.8rem);
+            color: var(--text-muted);
+            -webkit-text-fill-color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto 0.4rem;
+        }
+
+        /* ─── Configuration Panel ─── */
+        .config-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.8rem;
+            margin: 0.3rem auto 0;
+            max-width: 900px;
+            display: none;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            align-items: center;
+        }
+
+        .config-panel.active {
+            display: flex;
+        }
+
+        .config-panel .config-group {
+            display: flex;
+            flex: 1;
+            min-width: 150px;
+            align-items: center;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .config-panel .config-group label {
+            font-size: 0.45rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            min-width: 60px;
+        }
+
+        .config-panel .config-group input,
+        .config-panel .config-group select {
+            flex: 1;
+            min-width: 120px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 0.15rem 0.5rem;
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 0.5rem;
+            outline: none;
+            transition: border var(--transition);
+        }
+
+        .config-panel .config-group input:focus,
+        .config-panel .config-group select:focus {
+            border-color: var(--accent);
+        }
+
+        .config-panel .config-group input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .config-panel .config-actions {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .config-panel .config-actions button {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.1rem 0.5rem;
+            border-radius: 30px;
+            font-size: 0.4rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--transition);
+        }
+
+        .config-panel .config-actions button:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .config-panel .config-actions button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .config-panel .config-actions button.primary:hover {
+            opacity: 0.85;
+        }
+
+        .config-panel .config-actions button.neuron {
+            background: var(--neuron-color);
+            border-color: var(--neuron-color);
+            color: #fff;
+        }
+
+        .config-panel .config-actions button.neuron:hover {
+            opacity: 0.85;
+        }
+
+        /* ─── Tabs ─── */
+        .main-tabs {
+            display: flex;
+            gap: 0.2rem;
+            background: var(--bg-card);
+            padding: 0.1rem;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 0.3rem auto 0;
+            max-width: 800px;
+        }
+
+        .main-tabs button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.15rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.5rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .main-tabs button:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .main-tabs button.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .main-tabs button i {
+            font-size: 0.4rem;
+        }
+
+        /* ─── Language Tabs ─── */
+        .lang-tabs {
+            display: flex;
+            gap: 0.2rem;
+            background: var(--bg-card);
+            padding: 0.1rem;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .lang-tabs button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.15rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.5rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.15rem;
+        }
+
+        .lang-tabs button:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .lang-tabs button.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .lang-tabs button .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-html { background: #f472b6; }
+        .dot-css { background: #60a5fa; }
+        .dot-js { background: #fcd34d; }
+        .dot-ts { background: #34d399; }
+        .dot-sql { background: #4ade80; }
+        .dot-nosql { background: #fbbf24; }
+        .dot-py { background: #4584b6; }
+        .dot-neuron { background: var(--neuron-color); }
+
+        /* ─── MAIN LAYOUT ─── */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem 1.2rem;
+            max-width: 1440px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* ─── Chat Panel ─── */
+        .chat-panel {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 400px;
+            transition: all var(--transition);
+        }
+
+        .chat-panel .panel-header {
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .chat-panel .panel-header .title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .chat-panel .panel-header .title i {
+            color: var(--accent);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.4rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            min-height: 160px;
+            max-height: 380px;
+        }
+
+        .msg {
+            max-width: 92%;
+            padding: 0.3rem 0.7rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            animation: fadeIn 0.25s ease;
+            word-wrap: break-word;
+        }
+
+        .msg.user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg.bot {
+            align-self: flex-start;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg.bot .label {
+            font-size: 0.45rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.1rem;
+        }
+
+        .msg.bot .research-badge {
+            display: inline-block;
+            font-size: 0.35rem;
+            background: var(--neuron-color);
+            color: #fff;
+            padding: 0.02rem 0.3rem;
+            border-radius: 10px;
+            margin-left: 0.3rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.3rem;
+            padding: 0.3rem 0.8rem 0.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-input);
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+
+        .input-row input {
+            flex: 1;
+            padding: 0.25rem 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 0.6rem;
+            outline: none;
+            transition: border var(--transition);
+        }
+
+        .input-row input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .input-row input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .input-row button {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.5rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            white-space: nowrap;
+        }
+
+        .input-row button:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+        }
+
+        .input-row button:disabled {
+            opacity: 0.4;
+            cursor: default;
+            transform: none;
+        }
+
+        /* ─── Code Panel ─── */
+        .code-panel {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 400px;
+            transition: all var(--transition);
+        }
+
+        .code-panel .panel-header {
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .code-panel .panel-header .title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .code-panel .panel-header .title i {
+            color: var(--accent-secondary);
+        }
+
+        .code-panel .panel-header .actions {
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .code-panel .panel-header .actions button {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.1rem 0.5rem;
+            border-radius: 30px;
+            font-size: 0.4rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.15rem;
+        }
+
+        .code-panel .panel-header .actions button:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .code-panel .panel-header .actions button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .code-panel .panel-header .actions button.primary:hover {
+            opacity: 0.85;
+        }
+
+        .code-panel .panel-header .actions button.neuron-btn {
+            background: var(--neuron-color);
+            border-color: var(--neuron-color);
+            color: #fff;
+        }
+
+        .code-panel .panel-header .actions button.neuron-btn:hover {
+            opacity: 0.85;
+        }
+
+        .code-editor {
+            flex: 1;
+            background: var(--bg-editor);
+            padding: 0.4rem 0.6rem;
+            overflow: auto;
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            line-height: 1.7;
+            min-height: 140px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-editor textarea {
+            width: 100%;
+            height: 100%;
+            min-height: 120px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            line-height: 1.7;
+            outline: none;
+            resize: vertical;
+            tab-size: 2;
+        }
+
+        .code-editor textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        .lang-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.05rem 0.5rem;
+            border-radius: 30px;
+            font-size: 0.4rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .lang-indicator.html { background: #f472b6; color: #0a0a0f; }
+        .lang-indicator.css { background: #60a5fa; color: #0a0a0f; }
+        .lang-indicator.js { background: #fcd34d; color: #0a0a0f; }
+        .lang-indicator.ts { background: #34d399; color: #0a0a0f; }
+        .lang-indicator.sql { background: #4ade80; color: #0a0a0f; }
+        .lang-indicator.nosql { background: #fbbf24; color: #0a0a0f; }
+        .lang-indicator.py { background: #4584b6; color: #fff; }
+        .lang-indicator.neuron { background: var(--neuron-color); color: #fff; }
+
+        .preview-area {
+            flex: 1;
+            min-height: 140px;
+            background: var(--bg-input);
+            border-radius: 0 0 var(--radius) var(--radius);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-area iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        .preview-area .preview-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            font-size: 0.6rem;
+            gap: 0.2rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .preview-area .preview-placeholder i {
+            font-size: 1.5rem;
+            color: var(--text-dim);
+        }
+
+        .py-output-container {
+            padding: 0.5rem;
+            height: 100%;
+            overflow-y: auto;
+            background: var(--bg-code);
+            display: none;
+            flex-direction: column;
+        }
+
+        .py-output-container.show {
+            display: flex;
+        }
+
+        .py-output-header {
+            font-size: 0.45rem;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-shrink: 0;
+        }
+
+        .py-output-header i {
+            color: var(--py-color);
+        }
+
+        .py-output {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            background: var(--bg-code);
+            border-radius: 4px;
+            padding: 0.5rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow-y: auto;
+            flex: 1;
+            border: 1px solid var(--border-color);
+            min-height: 60px;
+            color: var(--text-secondary);
+        }
+
+        .py-output.error {
+            color: #f87171;
+            border-color: #f87171;
+            background: rgba(248, 113, 113, 0.08);
+        }
+
+        .py-output.success {
+            color: #4ade80;
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .execution-time {
+            font-size: 0.4rem;
+            color: var(--text-dim);
+            margin-top: 0.2rem;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* ─── Neuron Knowledge Graph ─── */
+        .neuron-panel {
+            display: none;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .neuron-panel.active {
+            display: flex;
+        }
+
+        .neuron-panel .panel-header {
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .neuron-panel .panel-header .title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .neuron-panel .panel-header .title i {
+            color: var(--neuron-color);
+        }
+
+        .neuron-panel .panel-header .actions {
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .neuron-panel .panel-header .actions button {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.1rem 0.5rem;
+            border-radius: 30px;
+            font-size: 0.4rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.15rem;
+        }
+
+        .neuron-panel .panel-header .actions button:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .neuron-panel .panel-header .actions button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .neuron-panel .panel-header .actions button.neuron {
+            background: var(--neuron-color);
+            border-color: var(--neuron-color);
+            color: #fff;
+        }
+
+        .neuron-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.5rem;
+            align-content: start;
+        }
+
+        .neuron-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem;
+            transition: all var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .neuron-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 30%, var(--neuron-color), transparent 70%);
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .neuron-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .neuron-card:hover {
+            border-color: var(--neuron-color);
+            transform: translateY(-2px);
+        }
+
+        .neuron-card .neuron-title {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .neuron-card .neuron-title .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--neuron-color);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .neuron-card .neuron-excerpt {
+            font-size: 0.45rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .neuron-card .neuron-tags {
+            display: flex;
+            gap: 0.15rem;
+            flex-wrap: wrap;
+            margin-top: 0.2rem;
+        }
+
+        .neuron-card .neuron-tags span {
+            font-size: 0.3rem;
+            background: var(--bg-input);
+            padding: 0.02rem 0.3rem;
+            border-radius: 10px;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .neuron-card .neuron-synapses {
+            font-size: 0.35rem;
+            color: var(--text-dim);
+            margin-top: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .neuron-card .neuron-synapses i {
+            color: var(--synapse-color);
+        }
+
+        .neuron-card .neuron-source {
+            font-size: 0.3rem;
+            color: var(--text-dim);
+            margin-top: 0.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .neuron-detail {
+            display: none;
+            padding: 0.5rem;
+            background: var(--bg-code);
+            border-top: 1px solid var(--border-color);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .neuron-detail.active {
+            display: block;
+        }
+
+        .neuron-detail .detail-title {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .neuron-detail .detail-content {
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+            white-space: pre-wrap;
+        }
+
+        .neuron-detail .detail-synapses {
+            margin-top: 0.3rem;
+            display: flex;
+            gap: 0.2rem;
+            flex-wrap: wrap;
+        }
+
+        .neuron-detail .detail-synapses span {
+            font-size: 0.35rem;
+            background: var(--bg-input);
+            padding: 0.02rem 0.3rem;
+            border-radius: 10px;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .neuron-detail .detail-synapses span:hover {
+            border-color: var(--synapse-color);
+            color: var(--text-primary);
+        }
+
+        .neuron-detail .detail-metadata {
+            font-size: 0.35rem;
+            color: var(--text-dim);
+            margin-top: 0.3rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* ─── Toast ─── */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.2rem 1rem;
+            border-radius: 60px;
+            font-size: clamp(0.4rem, 0.5vw, 0.5rem);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            font-family: var(--font);
+            white-space: nowrap;
+            max-width: 90vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* ─── Animations ─── */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 1024px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+                padding: 0.6rem;
+                gap: 0.6rem;
+            }
+            .chat-panel {
+                min-height: 280px;
+            }
+            .chat-messages {
+                max-height: 220px;
+                min-height: 100px;
+            }
+            .code-panel {
+                min-height: 320px;
+            }
+            .code-editor textarea {
+                min-height: 80px;
+            }
+            .preview-area {
+                min-height: 100px;
+            }
+            .config-panel {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 0.4rem;
+            }
+            .config-panel .config-group {
+                min-width: unset;
+            }
+            .config-panel .config-group input,
+            .config-panel .config-group select {
+                min-width: unset;
+            }
+            .hero-section h2 {
+                font-size: 1.1rem;
+            }
+            .neuron-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .nav-inner {
+                padding: 0 0.6rem;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.2rem;
+            }
+            .nav-actions {
+                justify-content: center;
+            }
+            .app-layout {
+                padding: 0.3rem;
+                gap: 0.4rem;
+            }
+            .chat-panel .panel-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.2rem;
+            }
+            .code-panel .panel-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.2rem;
+            }
+            .msg {
+                font-size: 0.6rem;
+                max-width: 96%;
+                padding: 0.2rem 0.5rem;
+            }
+            .input-row input {
+                font-size: 0.5rem;
+                padding: 0.15rem 0.4rem;
+            }
+            .input-row button {
+                font-size: 0.4rem;
+                padding: 0.12rem 0.4rem;
+            }
+            .lang-tabs button {
+                font-size: 0.35rem;
+                padding: 0.05rem 0.3rem;
+            }
+            .code-panel .panel-header .actions button {
+                font-size: 0.3rem;
+                padding: 0.05rem 0.3rem;
+            }
+            .main-tabs button {
+                font-size: 0.4rem;
+                padding: 0.1rem 0.4rem;
+            }
+            .config-panel .config-group label {
+                min-width: 40px;
+                font-size: 0.4rem;
+            }
+            .hero-section h2 {
+                font-size: 0.95rem;
+            }
+            .hero-section p {
+                font-size: 0.6rem;
+            }
+            .neuron-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ─── Footer ─── */
+        .app-footer {
+            padding: 0.3rem 0;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.45rem;
+            color: var(--text-muted);
+        }
+
+        .app-footer .footer-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.2rem;
+        }
+
+        .app-footer .footer-inner a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* ─── File input overlay ─── */
+        .file-drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.3rem;
+            text-align: center;
+            font-size: 0.45rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-top: 0.1rem;
+        }
+
+        .file-drop-zone:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+
+        .file-drop-zone.dragover {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .file-drop-zone input[type="file"] {
+            display: none;
+        }
+
+        .py-loading {
+            display: none;
+            padding: 0.05rem 0.5rem;
+            background: var(--accent-glow);
+            border-radius: 30px;
+            font-size: 0.4rem;
+            color: var(--accent);
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .py-loading.show {
+            display: inline-flex;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    TOAST
+    ============================================================ -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ============================================================
+    NAVIGATION
+    ============================================================ -->
+    <nav class="glass-nav">
+        <div class="nav-inner">
+            <a href="#" class="nav-brand">
+                <div class="brand-icon"><i class="fas fa-brain"></i></div>
+                <div>
+                    <h1>Neural Research</h1>
+                    <span>Knowledge OS · v2.0</span>
+                </div>
+            </a>
+            <div class="nav-actions">
+                <span class="badge-status"><i class="fas fa-robot"></i> AI Ready</span>
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i><span id="themeLabel">Dark</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================================================
+    HERO + CONFIGURATION
+    ============================================================ -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h2>🧠 Neural Research <span style="color:var(--neuron-color);-webkit-text-fill-color:var(--neuron-color);">Knowledge Graph</span></h2>
+            <p>AI-powered research assistant · Obsidian-style notes · Neural knowledge graph · Web research agent</p>
+
+            <!-- Configuration Panel -->
+            <div class="config-panel active" id="configPanel">
+                <div class="config-group">
+                    <label><i class="fas fa-key"></i> API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="Enter OpenRouter API key" />
+                </div>
+                <div class="config-group">
+                    <label><i class="fas fa-brain"></i> Model</label>
+                    <select id="modelSelect">
+                        <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash</option>
+                        <option value="google/gemini-2.0-pro-001">Gemini 2.0 Pro</option>
+                        <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
+                        <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet</option>
+                        <option value="meta-llama/llama-3.1-8b-instruct">Llama 3.1 8B</option>
+                        <option value="mistralai/mistral-7b-instruct">Mistral 7B</option>
+                        <option value="microsoft/phi-3-mini-128k-instruct">Phi-3 Mini</option>
+                    </select>
+                </div>
+                <div class="config-group">
+                    <label><i class="fas fa-thermometer-half"></i> Temp</label>
+                    <input type="range" id="tempSlider" min="0" max="1" step="0.1" value="0.6" style="min-width:60px;" />
+                    <span id="tempValue" style="font-size:0.45rem;color:var(--text-muted);">0.6</span>
+                </div>
+                <div class="config-actions">
+                    <button class="primary" id="testApiBtn"><i class="fas fa-check"></i> Test</button>
+                    <button class="neuron" id="saveConfigBtn"><i class="fas fa-save"></i> Save</button>
+                    <button id="toggleConfigBtn"><i class="fas fa-cog"></i></button>
+                </div>
+            </div>
+
+            <!-- Main Tabs -->
+            <div class="main-tabs">
+                <button class="active" data-tab="chat"><i class="fas fa-robot"></i> Chat</button>
+                <button data-tab="code"><i class="fas fa-code"></i> Code</button>
+                <button data-tab="neurons"><i class="fas fa-project-diagram"></i> Neurons</button>
+                <button data-tab="research"><i class="fas fa-globe"></i> Research</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    MAIN LAYOUT
+    ============================================================ -->
+    <div class="app-layout">
+
+        <!-- ─── CHAT PANEL ─── -->
+        <section class="chat-panel" id="chatPanel">
+            <div class="panel-header">
+                <span class="title"><i class="fas fa-robot"></i> AI Assistant</span>
+                <div class="lang-tabs" id="modeTabs">
+                    <button class="active" data-mode="general"><span class="dot dot-neuron"></span> General</button>
+                    <button data-mode="research"><span class="dot dot-html"></span> Research</button>
+                    <button data-mode="code"><span class="dot dot-py"></span> Code</button>
+                    <button data-mode="neuron"><span class="dot dot-neuron"></span> Neuron</button>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatBox">
+                <div class="msg bot">
+                    <div class="label">🧠 Neural Research AI</div>
+                    <span id="welcomeMsg">👋 Welcome! I'm your research assistant. I can help with <strong>research, coding, and knowledge management</strong>. Ask me anything!</span>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <input type="text" id="userInput" placeholder="Ask about research, code, or create a neuron..." />
+                <button id="sendBtn"><i class="fas fa-paper-plane"></i> Send</button>
+                <button id="researchBtn" class="neuron-btn" style="background:var(--neuron-color);"><i class="fas fa-globe"></i> Research</button>
+            </div>
+        </section>
+
+        <!-- ─── CODE PANEL ─── -->
+        <section class="code-panel" id="codePanel" style="display:none;">
+            <div class="panel-header">
+                <span class="title"><i class="fas fa-code"></i> Code Editor</span>
+                <div class="actions">
+                    <span class="lang-indicator html" id="langIndicator">HTML</span>
+                    <span class="py-loading" id="pyLoading"><i class="fas fa-spinner fa-spin"></i> Loading Python...</span>
+                    <button id="runBtn" class="primary"><i class="fas fa-play"></i> Run</button>
+                    <button id="exportBtn"><i class="fas fa-download"></i> Export</button>
+                    <button id="readBtn"><i class="fas fa-file-import"></i> Read</button>
+                    <button id="formatBtn"><i class="fas fa-magic"></i> Format</button>
+                    <button id="clearBtn"><i class="fas fa-trash-alt"></i> Clear</button>
+                    <button id="neuronFromCode" class="neuron-btn"><i class="fas fa-brain"></i> Save as Neuron</button>
+                </div>
+            </div>
+
+            <div class="code-editor">
+                <textarea id="codeTextarea" spellcheck="false"># Python Research Example
+        import requests
+        from bs4 import BeautifulSoup
+        
+        def research_topic(topic):
+            """Simulate web research on a topic"""
+            print(f"🔍 Researching: {topic}")
+            print("📊 Gathering information...")
+            print("✅ Research complete!")
+            return {
+                "topic": topic,
+                "findings": f"Found 5 key insights about {topic}",
+                "sources": ["Source 1", "Source 2", "Source 3"]
+            }
+        
+        # Example usage
+        result = research_topic("Neural Networks")
+        print(result)</textarea>
+            </div>
+
+            <div class="preview-area" id="previewArea">
+                <div class="preview-placeholder" id="previewPlaceholder">
+                    <i class="fas fa-play-circle"></i>
+                    <p>Run your code to see the result</p>
+                    <p style="font-size:0.45rem;color:var(--text-dim);">Click "Run" or press Ctrl+Enter</p>
+                </div>
+                <iframe id="previewIframe" style="display:none;"></iframe>
+                <div class="py-output-container" id="pyOutputContainer">
+                    <div class="py-output-header">
+                        <i class="fab fa-python"></i>
+                        <span>Python Output</span>
+                    </div>
+                    <div class="py-output" id="pyOutput"></div>
+                    <div class="execution-time" id="pyExecutionTime"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── NEURON PANEL ─── -->
+        <section class="neuron-panel" id="neuronPanel" style="display:none;">
+            <div class="panel-header">
+                <span class="title"><i class="fas fa-project-diagram"></i> Knowledge Neurons</span>
+                <div class="actions">
+                    <button id="exportNeuronsBtn"><i class="fas fa-file-export"></i> Export</button>
+                    <button id="importNeuronsBtn"><i class="fas fa-file-import"></i> Import</button>
+                    <button id="clearNeuronsBtn"><i class="fas fa-trash"></i> Clear</button>
+                    <button id="addNeuronBtn" class="neuron"><i class="fas fa-plus"></i> New</button>
+                </div>
+            </div>
+            <div class="neuron-grid" id="neuronGrid"></div>
+            <div class="neuron-detail" id="neuronDetail"></div>
+        </section>
+    </div>
+
+    <!-- ============================================================
+    COMPONENT LIBRARY
+    ============================================================ -->
+    <div style="max-width:1440px;margin:0 auto;padding:0 1.5rem 0.3rem;">
+        <div class="component-library" style="background:var(--bg-card);border-radius:var(--radius-sm);padding:0.3rem 0.6rem;border:1px solid var(--border-color);margin-top:0.2rem;">
+            <div class="lib-title" style="font-size:0.45rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.15rem;display:flex;align-items:center;gap:0.3rem;">
+                <i class="fas fa-cubes"></i> Quick Actions
+            </div>
+            <div class="component-grid" style="display:flex;flex-wrap:wrap;gap:0.15rem;">
+                <button class="comp-btn" data-template="research" style="background:var(--bg-input);border:1px solid var(--border-color);color:var(--text-muted);padding:0.05rem 0.35rem;border-radius:20px;font-size:0.35rem;cursor:pointer;font-family:var(--font);transition:var(--transition);display:flex;align-items:center;gap:0.1rem;">
+                    <i class="fas fa-globe"></i> Research
+                </button>
+                <button class="comp-btn" data-template="neuron" style="background:var(--bg-input);border:1px solid var(--border-color);color:var(--text-muted);padding:0.05rem 0.35rem;border-radius:20px;font-size:0.35rem;cursor:pointer;font-family:var(--font);transition:var(--transition);display:flex;align-items:center;gap:0.1rem;">
+                    <i class="fas fa-brain"></i> Create Neuron
+                </button>
+                <button class="comp-btn" data-template="obsidian" style="background:var(--bg-input);border:1px solid var(--border-color);color:var(--text-muted);padding:0.05rem 0.35rem;border-radius:20px;font-size:0.35rem;cursor:pointer;font-family:var(--font);transition:var(--transition);display:flex;align-items:center;gap:0.1rem;">
+                    <i class="fas fa-file-alt"></i> Obsidian Note
+                </button>
+                <button class="comp-btn" data-template="synapse" style="background:var(--bg-input);border:1px solid var(--border-color);color:var(--text-muted);padding:0.05rem 0.35rem;border-radius:20px;font-size:0.35rem;cursor:pointer;font-family:var(--font);transition:var(--transition);display:flex;align-items:center;gap:0.1rem;">
+                    <i class="fas fa-link"></i> Create Synapse
+                </button>
+            </div>
+            <div class="file-drop-zone" id="fileDropZone" style="border:2px dashed var(--border-color);border-radius:var(--radius-sm);padding:0.3rem;text-align:center;font-size:0.45rem;color:var(--text-dim);cursor:pointer;transition:all var(--transition);margin-top:0.1rem;">
+                <i class="fas fa-cloud-upload-alt"></i> Drop a .md, .json, .html, .py file here or click to browse
+                <input type="file" id="fileInput" accept=".md,.json,.html,.htm,.css,.js,.ts,.sql,.txt,.py" />
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    FOOTER
+    ============================================================ -->
+    <footer class="app-footer">
+        <div class="footer-inner">
+            <span><i class="fas fa-brain"></i> Neural Research OS · Powered by OpenRouter</span>
+            <span><i class="fas fa-project-diagram"></i> Knowledge Graph · v2.0</span>
+            <span><i class="fas fa-keyboard"></i> Ctrl+Enter to run · Ctrl+Shift+N for new neuron</span>
+        </div>
+    </footer>
+
+    <!-- ============================================================
+    JAVASCRIPT - COMPLETE APPLICATION
+    ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // CONFIGURATION
+            // ============================================================
+            const CONFIG = {
+                apiKey: localStorage.getItem('neural_api_key') || '',
+                model: localStorage.getItem('neural_model') || 'google/gemini-2.0-flash-001',
+                temperature: parseFloat(localStorage.getItem('neural_temp')) || 0.6,
+                maxTokens: 800
+            };
+
+            const AVAILABLE_MODELS = [
+                'google/gemini-2.0-flash-001',
+                'google/gemini-2.0-pro-001',
+                'anthropic/claude-3-haiku',
+                'anthropic/claude-3-sonnet',
+                'meta-llama/llama-3.1-8b-instruct',
+                'mistralai/mistral-7b-instruct',
+                'microsoft/phi-3-mini-128k-instruct'
+            ];
+
+            // ============================================================
+            // DOM REFS
+            // ============================================================
+            const chatBox = document.getElementById('chatBox');
+            const userInput = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const researchBtn = document.getElementById('researchBtn');
+            const welcomeMsg = document.getElementById('welcomeMsg');
+            const codeTextarea = document.getElementById('codeTextarea');
+            const previewArea = document.getElementById('previewArea');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+            const previewIframe = document.getElementById('previewIframe');
+            const pyOutputContainer = document.getElementById('pyOutputContainer');
+            const pyOutput = document.getElementById('pyOutput');
+            const pyExecutionTime = document.getElementById('pyExecutionTime');
+            const pyLoading = document.getElementById('pyLoading');
+            const toastEl = document.getElementById('toast');
+            const langIndicator = document.getElementById('langIndicator');
+            const runBtn = document.getElementById('runBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            const readBtn = document.getElementById('readBtn');
+            const formatBtn = document.getElementById('formatBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const modelSelect = document.getElementById('modelSelect');
+            const tempSlider = document.getElementById('tempSlider');
+            const tempValue = document.getElementById('tempValue');
+            const testApiBtn = document.getElementById('testApiBtn');
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+            const toggleConfigBtn = document.getElementById('toggleConfigBtn');
+            const apiStatus = document.getElementById('apiStatus');
+            const fileDropZone = document.getElementById('fileDropZone');
+            const fileInput = document.getElementById('fileInput');
+            const neuronGrid = document.getElementById('neuronGrid');
+            const neuronDetail = document.getElementById('neuronDetail');
+            const addNeuronBtn = document.getElementById('addNeuronBtn');
+            const exportNeuronsBtn = document.getElementById('exportNeuronsBtn');
+            const importNeuronsBtn = document.getElementById('importNeuronsBtn');
+            const clearNeuronsBtn = document.getElementById('clearNeuronsBtn');
+            const neuronFromCode = document.getElementById('neuronFromCode');
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            let currentMode = 'general';
+            let chatHistory = [];
+            let modelIndex = 0;
+            let pyodideReady = false;
+            let pyodideInstance = null;
+            let isPyodideLoading = false;
+            let neurons = [];
+            let currentNeuronId = null;
+            let currentTab = 'chat';
+
+            // ============================================================
+            // TOAST
+            // ============================================================
+            let toastTimeout;
+
+            function showToast(msg, dur = 2500) {
+                toastEl.textContent = msg;
+                toastEl.classList.add('show');
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => toastEl.classList.remove('show'), dur);
+            }
+
+            // ============================================================
+            // THEME
+            // ============================================================
+            let currentTheme = 'dark';
+
+            function applyTheme(theme) {
+                currentTheme = theme;
+                document.documentElement.setAttribute('data-theme', theme);
+                const icon = document.getElementById('themeIcon');
+                const label = document.getElementById('themeLabel');
+                if (theme === 'dark') { icon.className = 'fas fa-moon';
+                    label.textContent = 'Dark'; } else { icon.className = 'fas fa-sun';
+                    label.textContent = 'Light'; }
+            }
+            applyTheme('dark');
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            });
+
+            // ============================================================
+            // CONFIG MANAGEMENT
+            // ============================================================
+            function loadConfig() {
+                apiKeyInput.value = CONFIG.apiKey;
+                modelSelect.value = CONFIG.model;
+                tempSlider.value = CONFIG.temperature;
+                tempValue.textContent = CONFIG.temperature.toFixed(1);
+            }
+
+            function saveConfig() {
+                CONFIG.apiKey = apiKeyInput.value.trim();
+                CONFIG.model = modelSelect.value;
+                CONFIG.temperature = parseFloat(tempSlider.value);
+                localStorage.setItem('neural_api_key', CONFIG.apiKey);
+                localStorage.setItem('neural_model', CONFIG.model);
+                localStorage.setItem('neural_temp', CONFIG.temperature);
+                showToast('✅ Configuration saved!', 2000);
+            }
+
+            loadConfig();
+
+            tempSlider.addEventListener('input', () => {
+                const val = parseFloat(tempSlider.value);
+                tempValue.textContent = val.toFixed(1);
+            });
+
+            saveConfigBtn.addEventListener('click', saveConfig);
+
+            toggleConfigBtn.addEventListener('click', () => {
+                document.getElementById('configPanel').classList.toggle('active');
+            });
+
+            // ============================================================
+            // API KEY TESTING
+            // ============================================================
+            async function testApiKey(key) {
+                if (!key || key.length < 10) {
+                    showToast('⚠️ Please enter a valid API key', 2000);
+                    return false;
+                }
+                try {
+                    const response = await fetch('https://openrouter.ai/api/v1/models', {
+                        headers: {
+                            'Authorization': `Bearer ${key}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': window.location.origin,
+                            'X-Title': 'Neural Research OS'
+                        }
+                    });
+                    if (!response.ok) {
+                        const err = await response.json().catch(() => ({}));
+                        throw new Error(err?.error?.message || `HTTP ${response.status}`);
+                    }
+                    const data = await response.json();
+                    const models = data.data || [];
+                    const freeModels = models.filter(m => {
+                        if (m.pricing) {
+                            const p = parseFloat(m.pricing.prompt) || 0;
+                            const c = parseFloat(m.pricing.completion) || 0;
+                            return p === 0 && c === 0;
+                        }
+                        return false;
+                    });
+                    showToast(`✅ API valid! ${freeModels.length} free models available`, 2500);
+                    return true;
+                } catch (err) {
+                    showToast('❌ API test failed: ' + err.message, 3000);
+                    return false;
+                }
+            }
+
+            testApiBtn.addEventListener('click', async () => {
+                const key = apiKeyInput.value.trim();
+                if (!key) { showToast('⚠️ Enter an API key', 2000); return; }
+                await testApiKey(key);
+            });
+
+            // ============================================================
+            // PYODIDE INIT
+            // ============================================================
+            async function initPyodide() {
+                if (pyodideReady || isPyodideLoading) return;
+                isPyodideLoading = true;
+                try {
+                    pyLoading.classList.add('show');
+                    showToast('🐍 Loading Python runtime...', 3000);
+                    pyodideInstance = await loadPyodide({
+                        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.1/full/'
+                    });
+                    pyodideReady = true;
+                    pyLoading.classList.remove('show');
+                    showToast('✅ Python runtime ready!', 2000);
+                } catch (err) {
+                    pyLoading.classList.remove('show');
+                    console.error('Pyodide load error:', err);
+                    showToast('⚠️ Failed to load Python runtime: ' + err.message, 4000);
+                } finally {
+                    isPyodideLoading = false;
+                }
+            }
+
+            setTimeout(initPyodide, 1000);
+
+            // ============================================================
+            // TABS
+            // ============================================================
+            document.querySelectorAll('.main-tabs button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.main-tabs button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTab = this.dataset.tab;
+
+                    document.getElementById('chatPanel').style.display = currentTab === 'chat' ? 'flex' : 'none';
+                    document.getElementById('codePanel').style.display = currentTab === 'code' ? 'flex' : 'none';
+                    document.getElementById('neuronPanel').style.display = currentTab === 'neurons' ? 'flex' :
+                    'none';
+
+                    if (currentTab === 'neurons') {
+                        renderNeurons();
+                    }
+                    if (currentTab === 'code' && !pyodideReady) {
+                        initPyodide();
+                    }
+                });
+            });
+
+            // ============================================================
+            // MODE TABS
+            // ============================================================
+            document.querySelectorAll('#modeTabs button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#modeTabs button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentMode = this.dataset.mode;
+
+                    const modeMessages = {
+                        general: '💡 I can help with research, coding, and knowledge management!',
+                        research: '🔬 Research mode - I\'ll help you find and analyze information!',
+                        code: '💻 Code mode - I\'ll help you write and debug code!',
+                        neuron: '🧠 Neuron mode - I\'ll help you create and connect knowledge!'
+                    };
+                    welcomeMsg.textContent = modeMessages[currentMode] || modeMessages.general;
+                    chatHistory = [];
+                    const msgs = chatBox.querySelectorAll('.msg');
+                    for (let i = 1; i < msgs.length; i++) msgs[i].remove();
+                    const first = chatBox.querySelector('.msg');
+                    if (first) {
+                        const ans = first.querySelector('span');
+                        if (ans) ans.innerHTML = '👋 ' + (modeMessages[currentMode] || modeMessages.general);
+                    }
+                });
+            });
+
+            // ============================================================
+            // NEURON MANAGEMENT
+            // ============================================================
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            }
+
+            function createNeuron(title, content, tags = [], synapses = [], source = 'manual') {
+                const neuron = {
+                    id: generateId(),
+                    title: title,
+                    content: content,
+                    tags: tags,
+                    synapses: synapses,
+                    source: source,
+                    created: new Date().toISOString(),
+                    updated: new Date().toISOString()
+                };
+                neurons.push(neuron);
+                saveNeurons();
+                renderNeurons();
+                return neuron;
+            }
+
+            function saveNeurons() {
+                try {
+                    localStorage.setItem('neurons', JSON.stringify(neurons));
+                } catch (e) {
+                    console.error('Failed to save neurons:', e);
+                }
+            }
+
+            function loadNeurons() {
+                try {
+                    const data = localStorage.getItem('neurons');
+                    if (data) {
+                        neurons = JSON.parse(data);
+                    } else {
+                        // Create sample neurons
+                        neurons = [{
+                            id: generateId(),
+                            title: 'Introduction to Neural Networks',
+                            content: 'Neural networks are computing systems inspired by biological neural networks. They consist of interconnected nodes (neurons) that process information.',
+                            tags: ['AI', 'Machine Learning', 'Neural Networks'],
+                            synapses: ['Deep Learning', 'Backpropagation', 'Activation Functions'],
+                            source: 'sample',
+                            created: new Date().toISOString(),
+                            updated: new Date().toISOString()
+                        }, {
+                            id: generateId(),
+                            title: 'Knowledge Graphs',
+                            content: 'Knowledge graphs represent information as nodes (entities) and edges (relationships). They enable semantic search and reasoning.',
+                            tags: ['Knowledge Management', 'Graph Theory', 'Semantic Web'],
+                            synapses: ['Neural Networks', 'RDF', 'SPARQL'],
+                            source: 'sample',
+                            created: new Date().toISOString(),
+                            updated: new Date().toISOString()
+                        }, {
+                            id: generateId(),
+                            title: 'Research Methods',
+                            content: 'Effective research involves systematic investigation, data collection, analysis, and synthesis of findings.',
+                            tags: ['Research', 'Methodology', 'Science'],
+                            synapses: ['Data Analysis', 'Statistics', 'Writing'],
+                            source: 'sample',
+                            created: new Date().toISOString(),
+                            updated: new Date().toISOString()
+                        }];
+                        saveNeurons();
+                    }
+                } catch (e) {
+                    console.error('Failed to load neurons:', e);
+                    neurons = [];
+                }
+                renderNeurons();
+            }
+
+            function renderNeurons() {
+                if (!neuronGrid) return;
+                if (neurons.length === 0) {
+                    neuronGrid.innerHTML = `
+                        <div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:2rem;">
+                            <i class="fas fa-brain" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.3;"></i>
+                            <p style="font-size:0.7rem;">No neurons yet. Create your first knowledge neuron!</p>
+                            <button onclick="document.getElementById('addNeuronBtn').click()" style="margin-top:0.5rem;background:var(--neuron-color);color:#fff;border:none;padding:0.2rem 0.8rem;border-radius:30px;font-size:0.5rem;cursor:pointer;">
+                                <i class="fas fa-plus"></i> Create Neuron
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                neuronGrid.innerHTML = neurons.map(neuron => `
+                    <div class="neuron-card" data-id="${neuron.id}" onclick="window.viewNeuron('${neuron.id}')">
+                        <div class="neuron-title">
+                            <span class="dot"></span>
+                            ${neuron.title}
+                        </div>
+                        <div class="neuron-excerpt">${neuron.content.substring(0, 100)}${neuron.content.length > 100 ? '...' : ''}</div>
+                        ${neuron.tags && neuron.tags.length > 0 ? `
+                            <div class="neuron-tags">
+                                ${neuron.tags.map(tag => `<span>#${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        ${neuron.synapses && neuron.synapses.length > 0 ? `
+                            <div class="neuron-synapses">
+                                <i class="fas fa-link"></i> ${neuron.synapses.length} synapse${neuron.synapses.length > 1 ? 's' : ''}
+                            </div>
+                        ` : ''}
+                        <div class="neuron-source">
+                            <i class="fas fa-info-circle"></i> ${neuron.source || 'manual'}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            window.viewNeuron = function(id) {
+                const neuron = neurons.find(n => n.id === id);
+                if (!neuron) return;
+                currentNeuronId = id;
+                const detail = document.getElementById('neuronDetail');
+                detail.classList.add('active');
+                detail.innerHTML = `
+                    <div class="detail-title">${neuron.title}</div>
+                    <div class="detail-content">${neuron.content}</div>
+                    ${neuron.tags && neuron.tags.length > 0 ? `
+                        <div class="detail-synapses">
+                            <strong style="font-size:0.4rem;color:var(--text-muted);">Tags:</strong>
+                            ${neuron.tags.map(tag => `<span>#${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    ${neuron.synapses && neuron.synapses.length > 0 ? `
+                        <div class="detail-synapses">
+                            <strong style="font-size:0.4rem;color:var(--text-muted);">Synapses:</strong>
+                            ${neuron.synapses.map(syn => `<span onclick="window.searchSynapse('${syn}')">${syn}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="detail-metadata">
+                        <span><i class="far fa-clock"></i> ${new Date(neuron.created).toLocaleDateString()}</span>
+                        <span><i class="fas fa-source"></i> ${neuron.source || 'manual'}</span>
+                        <span><i class="fas fa-id-card"></i> ${neuron.id.substring(0, 8)}</span>
+                        <button onclick="window.deleteNeuron('${neuron.id}')" style="background:transparent;border:1px solid #f87171;color:#f87171;padding:0.05rem 0.5rem;border-radius:10px;font-size:0.35rem;cursor:pointer;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+            };
+
+            window.searchSynapse = function(synapse) {
+                userInput.value = `Find related knowledge to "${synapse}"`;
+                document.querySelector('[data-tab="chat"]').click();
+                setTimeout(handleSend, 500);
+            };
+
+            window.deleteNeuron = function(id) {
+                if (confirm('Delete this neuron?')) {
+                    neurons = neurons.filter(n => n.id !== id);
+                    saveNeurons();
+                    renderNeurons();
+                    document.getElementById('neuronDetail').classList.remove('active');
+                    showToast('🗑️ Neuron deleted', 1500);
+                }
+            };
+
+            // Add Neuron
+            addNeuronBtn.addEventListener('click', () => {
+                const title = prompt('Enter neuron title:');
+                if (!title) return;
+                const content = prompt('Enter neuron content:');
+                if (!content) return;
+                const tags = prompt('Enter tags (comma separated):');
+                const tagArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [];
+                const synapses = prompt('Enter synapses (comma separated):');
+                const synapseArray = synapses ? synapses.split(',').map(s => s.trim()).filter(s => s) : [];
+
+                createNeuron(title, content, tagArray, synapseArray, 'manual');
+                showToast('🧠 Neuron created!', 2000);
+            });
+
+            // Export Neurons
+            exportNeuronsBtn.addEventListener('click', () => {
+                const data = JSON.stringify(neurons, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `neurons_${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('✅ Neurons exported!', 2000);
+            });
+
+            // Import Neurons
+            importNeuronsBtn.addEventListener('click', () => {
+                fileInput.accept = '.json';
+                fileInput.click();
+            });
+
+            // Clear Neurons
+            clearNeuronsBtn.addEventListener('click', () => {
+                if (confirm('⚠️ Delete ALL neurons? This cannot be undone!')) {
+                    neurons = [];
+                    saveNeurons();
+                    renderNeurons();
+                    document.getElementById('neuronDetail').classList.remove('active');
+                    showToast('🗑️ All neurons cleared', 2000);
+                }
+            });
+
+            // ============================================================
+            // RESEARCH AGENT
+            // ============================================================
+            async function researchTopic(topic) {
+                if (!CONFIG.apiKey) {
+                    showToast('⚠️ Please configure your API key first', 3000);
+                    return null;
+                }
+
+                appendMessage('user', `🔍 Research: ${topic}`);
+                userInput.value = '';
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${CONFIG.apiKey}`,
+                            'HTTP-Referer': window.location.origin,
+                            'X-Title': 'Neural Research OS'
+                        },
+                        body: JSON.stringify({
+                            model: CONFIG.model,
+                            messages: [
+                                { role: 'system',
+                                    content: 'You are a research assistant. Provide detailed, well-structured information with key findings, sources, and actionable insights. Format with clear sections.' },
+                                { role: 'user', content: `Research the following topic in depth: ${topic}` }
+                            ],
+                            temperature: CONFIG.temperature,
+                            max_tokens: CONFIG.maxTokens * 2
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json().catch(() => ({}));
+                        throw new Error(err?.error?.message || `HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const reply = data.choices?.[0]?.message?.content || 'No response received.';
+                    appendMessage('bot', reply);
+
+                    // Auto-create neuron from research
+                    const neuronTitle = `Research: ${topic}`;
+                    const neuronContent = reply;
+                    const tags = ['research', topic.toLowerCase().replace(/\s/g, '_')];
+                    const synapse = ['Research Methods', 'Knowledge Graph'];
+
+                    createNeuron(neuronTitle, neuronContent, tags, synapse, 'research');
+                    showToast(`🧠 Research saved as neuron: "${neuronTitle}"`, 3000);
+
+                    return reply;
+
+                } catch (err) {
+                    const errMsg = err.message || 'Unknown error';
+                    appendMessage('bot', `⚠️ Research error: ${errMsg}`);
+                    showToast('❌ ' + errMsg, 4000);
+                    return null;
+                } finally {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send';
+                    userInput.focus();
+                }
+            }
+
+            // ============================================================
+            // AI CHAT
+            // ============================================================
+            async function askAI(userMessage) {
+                if (!CONFIG.apiKey) {
+                    appendMessage('bot', '⚠️ Please configure your API key in the settings panel.');
+                    showToast('⚠️ API key required', 3000);
+                    return;
+                }
+
+                const modePrompts = {
+                    general: 'You are a helpful research assistant and knowledge manager. Help with research, coding, and learning.',
+                    research: 'You are a research specialist. Provide detailed, well-cited information and analysis.',
+                    code: 'You are a programming expert. Provide clean, well-commented code with explanations.',
+                    neuron: 'You are a knowledge architect. Help structure information and create meaningful connections.'
+                };
+
+                const systemPrompt = modePrompts[currentMode] || modePrompts.general;
+
+                try {
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${CONFIG.apiKey}`,
+                            'HTTP-Referer': window.location.origin,
+                            'X-Title': 'Neural Research OS'
+                        },
+                        body: JSON.stringify({
+                            model: CONFIG.model,
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                ...chatHistory.slice(-10),
+                                { role: 'user', content: userMessage }
+                            ],
+                            temperature: CONFIG.temperature,
+                            max_tokens: CONFIG.maxTokens
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json().catch(() => ({}));
+                        throw new Error(err?.error?.message || `HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const reply = data.choices?.[0]?.message?.content || 'I had a thought, but it slipped away.';
+                    appendMessage('bot', reply);
+
+                    // Check if we should create a neuron from the response
+                    if (currentMode === 'neuron' || userMessage.toLowerCase().includes('create neuron')) {
+                        const lines = reply.split('\n').filter(l => l.trim().length > 20);
+                        if (lines.length > 0) {
+                            const title = lines[0].substring(0, 50).trim();
+                            const content = reply;
+                            const tags = ['chat', currentMode, ...userMessage.split(' ').slice(0, 3)];
+                            const synapse = [currentMode, 'AI Generated'];
+                            createNeuron(title, content, tags, synapse, 'chat');
+                            showToast('🧠 Neuron created from chat!', 2000);
+                        }
+                    }
+
+                    // Extract code blocks
+                    const codeMatch = reply.match(/```(?:html|css|javascript|typescript|sql|json|python)?\n([\s\S]*?)```/);
+                    if (codeMatch && codeMatch[1].length > 20) {
+                        const code = codeMatch[1].trim();
+                        // Update code editor if in code tab
+                        if (currentTab === 'code') {
+                            codeTextarea.value = code;
+                            showToast('📝 Code extracted to editor', 1500);
+                        }
+                    }
+
+                    return reply;
+
+                } catch (err) {
+                    const errMsg = err.message || 'Unknown error';
+                    appendMessage('bot', `⚠️ Error: ${errMsg}`);
+                    showToast('❌ ' + errMsg, 4000);
+                    return null;
+                }
+            }
+
+            // ============================================================
+            // APPEND MESSAGE
+            // ============================================================
+            function appendMessage(role, content) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `msg ${role}`;
+                if (role === 'bot') {
+                    const label = document.createElement('div');
+                    label.className = 'label';
+                    label.textContent = '🧠 Neural AI';
+                    msgDiv.appendChild(label);
+                    const span = document.createElement('span');
+                    span.innerHTML = content.replace(/\n/g, '<br>');
+                    msgDiv.appendChild(span);
+                } else {
+                    msgDiv.textContent = content;
+                }
+                chatBox.appendChild(msgDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                chatHistory.push({ role: role === 'user' ? 'user' : 'assistant', content });
+                if (chatHistory.length > 50) chatHistory.splice(0, 10);
+            }
+
+            // ============================================================
+            // SEND HANDLER
+            // ============================================================
+            async function handleSend() {
+                const msg = userInput.value.trim();
+                if (!msg) { showToast('⚠️ Enter a message', 2000);
+                    userInput.focus(); return; }
+
+                appendMessage('user', msg);
+                userInput.value = '';
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    await askAI(msg);
+                } catch (e) { console.error(e); } finally {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send';
+                    userInput.focus();
+                }
+            }
+
+            sendBtn.addEventListener('click', handleSend);
+            userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
+                    handleSend(); }
+            });
+
+            // ============================================================
+            // RESEARCH BUTTON
+            // ============================================================
+            researchBtn.addEventListener('click', async () => {
+                const msg = userInput.value.trim();
+                if (!msg) { showToast('⚠️ Enter a research topic', 2000);
+                    userInput.focus(); return; }
+                await researchTopic(msg);
+            });
+
+            // ============================================================
+            // PYTHON EXECUTION
+            // ============================================================
+            async function runPython(code) {
+                if (!pyodideReady) {
+                    await initPyodide();
+                    if (!pyodideReady) {
+                        showToast('⚠️ Python runtime not available', 3000);
+                        return;
+                    }
+                }
+
+                previewPlaceholder.style.display = 'none';
+                previewIframe.style.display = 'none';
+                pyOutputContainer.classList.add('show');
+                pyOutput.className = 'py-output';
+                pyOutput.textContent = '⏳ Executing Python code...';
+                pyExecutionTime.textContent = '';
+
+                const startTime = performance.now();
+
+                try {
+                    let output = '';
+                    const stdout = {
+                        write: (text) => {
+                            output += text;
+                        }
+                    };
+
+                    const result = await pyodideInstance.runPythonAsync(code, {
+                        stdout: stdout.write
+                    });
+
+                    const endTime = performance.now();
+                    const execTime = ((endTime - startTime) / 1000).toFixed(3);
+
+                    pyOutput.className = 'py-output success';
+
+                    let displayOutput = '';
+                    if (output) {
+                        displayOutput = output;
+                    }
+
+                    if (result !== undefined && result !== null) {
+                        const resultStr = String(result);
+                        if (resultStr && !displayOutput.includes(resultStr)) {
+                            if (displayOutput) displayOutput += '\n';
+                            displayOutput += `┌─ Result ─────────────\n`;
+                            displayOutput += `│ ${resultStr}\n`;
+                            displayOutput += `└──────────────────────`;
+                        }
+                    }
+
+                    if (!displayOutput) {
+                        displayOutput = '✅ Code executed successfully! (No output)';
+                    }
+
+                    pyOutput.textContent = displayOutput;
+                    pyExecutionTime.textContent = `⏱️ Executed in ${execTime}s`;
+
+                    showToast(`✅ Python executed in ${execTime}s`, 2000);
+
+                } catch (error) {
+                    const endTime = performance.now();
+                    const execTime = ((endTime - startTime) / 1000).toFixed(3);
+
+                    pyOutput.className = 'py-output error';
+                    const errorMsg = error.toString();
+                    const cleanError = errorMsg
+                        .replace(/Traceback \(most recent call last\):\n/g, '')
+                        .replace(/File "<exec>", line \d+, in <module>/g, '')
+                        .replace(/File "<exec>", line \d+, in /g, '');
+                    pyOutput.textContent = `❌ Error:\n${cleanError}`;
+                    pyExecutionTime.textContent = `⏱️ Failed in ${execTime}s`;
+
+                    showToast('❌ Python error: ' + error.message, 3000);
+                    console.error('Python execution error:', error);
+                }
+            }
+
+            // ============================================================
+            // CODE EXECUTION
+            // ============================================================
+            function runCode() {
+                const code = codeTextarea.value;
+                if (!code || code.trim().length < 5) {
+                    showToast('⚠️ Please write some code first', 2000);
+                    return;
+                }
+
+                const isPythonCode = code.includes('print(') ||
+                    code.includes('def ') ||
+                    code.includes('import ') ||
+                    code.includes('class ') ||
+                    code.includes('return ') ||
+                    code.includes('for ') ||
+                    code.includes('while ') ||
+                    code.includes('if __name__');
+
+                if (isPythonCode) {
+                    runPython(code);
+                    return;
+                }
+
+                // HTML execution
+                previewPlaceholder.style.display = 'none';
+                previewIframe.style.display = 'block';
+                pyOutputContainer.classList.remove('show');
+
+                const blob = new Blob([code], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                previewIframe.src = url;
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+                showToast('✅ Code executed!', 1500);
+            }
+
+            // ============================================================
+            // CODE BUTTONS
+            // ============================================================
+            runBtn.addEventListener('click', runCode);
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    runCode();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'N') {
+                    e.preventDefault();
+                    addNeuronBtn.click();
+                }
+            });
+
+            exportBtn.addEventListener('click', () => {
+                const code = codeTextarea.value;
+                if (!code) { showToast('⚠️ No code to export', 2000); return; }
+                const blob = new Blob([code], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `code_${Date.now()}.py`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('✅ Code exported!', 2000);
+            });
+
+            readBtn.addEventListener('click', () => {
+                fileInput.accept = '.html,.htm,.css,.js,.ts,.sql,.txt,.py,.md';
+                fileInput.click();
+            });
+
+            formatBtn.addEventListener('click', () => {
+                const code = codeTextarea.value;
+                const lines = code.split('\n');
+                const trimmed = lines.map(l => l.trimEnd());
+                codeTextarea.value = trimmed.join('\n');
+                showToast('✨ Code formatted', 1500);
+            });
+
+            clearBtn.addEventListener('click', () => {
+                if (confirm('Clear the editor?')) {
+                    codeTextarea.value = '';
+                    showToast('🗑️ Editor cleared', 1500);
+                }
+            });
+
+            neuronFromCode.addEventListener('click', () => {
+                const code = codeTextarea.value;
+                if (!code || code.trim().length < 5) {
+                    showToast('⚠️ No code to save as neuron', 2000);
+                    return;
+                }
+                const title = prompt('Enter neuron title for this code:');
+                if (!title) return;
+                const tags = prompt('Enter tags (comma separated):');
+                const tagArray = tags ? tags.split(',').map(t => t.trim()).filter(t => t) : ['code'];
+                const synapses = prompt('Enter synapses (comma separated):');
+                const synapseArray = synapses ? synapses.split(',').map(s => s.trim()).filter(s => s) : [];
+
+                createNeuron(title, code, tagArray, synapseArray, 'code');
+                showToast('🧠 Code saved as neuron!', 2000);
+            });
+
+            // ============================================================
+            // FILE HANDLING
+            // ============================================================
+            function readFile(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    if (file.name.endsWith('.json')) {
+                        try {
+                            const data = JSON.parse(content);
+                            if (Array.isArray(data) && data.length > 0 && data[0].id) {
+                                neurons = data;
+                                saveNeurons();
+                                renderNeurons();
+                                showToast(`📂 Imported ${neurons.length} neurons!`, 2000);
+                                return;
+                            }
+                        } catch (err) {
+                            showToast('⚠️ Invalid JSON format', 2000);
+                            return;
+                        }
+                    }
+                    if (file.name.endsWith('.md')) {
+                        const lines = content.split('\n');
+                        const title = lines[0].replace(/^#\s*/, '').trim() || 'Untitled Note';
+                        const body = lines.slice(1).join('\n');
+                        const tags = [];
+                        const synapses = [];
+                        // Extract tags from markdown
+                        const tagMatches = content.match(/#\w+/g);
+                        if (tagMatches) tags.push(...tagMatches.map(t => t.substring(1)));
+                        createNeuron(title, body, tags, synapses, 'obsidian');
+                        showToast(`📄 Imported Obsidian note: ${title}`, 2000);
+                        return;
+                    }
+                    codeTextarea.value = content;
+                    showToast(`📂 Loaded: ${file.name}`, 2000);
+                };
+                reader.readAsText(file);
+            }
+
+            fileDropZone.addEventListener('click', () => {
+                fileInput.accept = '.md,.json,.html,.htm,.css,.js,.ts,.sql,.txt,.py';
+                fileInput.click();
+            });
+
+            fileDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileDropZone.classList.add('dragover');
+            });
+
+            fileDropZone.addEventListener('dragleave', () => {
+                fileDropZone.classList.remove('dragover');
+            });
+
+            fileDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileDropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    readFile(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    readFile(e.target.files[0]);
+                }
+                fileInput.value = '';
+            });
+
+            // ============================================================
+            // COMPONENT LIBRARY BUTTONS
+            // ============================================================
+            document.querySelectorAll('.comp-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const template = this.dataset.template;
+                    const actions = {
+                        research: () => {
+                            userInput.value = 'Help me research the latest developments in AI';
+                            document.querySelector('[data-tab="chat"]').click();
+                            setTimeout(handleSend, 500);
+                        },
+                        neuron: () => {
+                            document.querySelector('[data-tab="neurons"]').click();
+                            setTimeout(addNeuronBtn.click, 300);
+                        },
+                        obsidian: () => {
+                            document.getElementById('fileInput').accept = '.md';
+                            fileInput.click();
+                        },
+                        synapse: () => {
+                            const from = prompt('From neuron title:');
+                            if (!from) return;
+                            const to = prompt('To neuron title:');
+                            if (!to) return;
+                            const fromNeuron = neurons.find(n => n.title.toLowerCase() === from.toLowerCase());
+                            const toNeuron = neurons.find(n => n.title.toLowerCase() === to.toLowerCase());
+                            if (fromNeuron && toNeuron) {
+                                if (!fromNeuron.synapses) fromNeuron.synapses = [];
+                                if (!fromNeuron.synapses.includes(to)) {
+                                    fromNeuron.synapses.push(to);
+                                    saveNeurons();
+                                    renderNeurons();
+                                    showToast(`🔗 Synapse created: ${from} ↔ ${to}`, 2000);
+                                } else {
+                                    showToast('⚠️ Synapse already exists', 1500);
+                                }
+                            } else {
+                                showToast('⚠️ Neuron not found', 1500);
+                            }
+                        }
+                    };
+                    if (actions[template]) actions[template]();
+                });
+            });
+
+            // ============================================================
+            // THREE.JS AVATAR
+            // ============================================================
+            const avatarContainer = document.createElement('div');
+            avatarContainer.id = 'avatar-container';
+            avatarContainer.style.cssText =
+                'position:fixed;bottom:80px;right:20px;width:60px;height:60px;z-index:50;pointer-events:none;opacity:0.1;';
+            document.body.appendChild(avatarContainer);
+
+            let scene, camera, renderer;
+            let avatarInit = false;
+
+            function initAvatar() {
+                if (avatarInit) return;
+                try {
+                    const container = document.getElementById('avatar-container');
+                    if (!container) return;
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+                    camera.position.set(0, 1.2, 3.5);
+                    camera.lookAt(0, 0.2, 0);
+                    renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                    renderer.setSize(60, 60);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                    container.appendChild(renderer.domElement);
+
+                    const group = new THREE.Group();
+                    scene.add(group);
+
+                    const headGeo = new THREE.IcosahedronGeometry(0.9, 1);
+                    const headMat = new THREE.MeshPhysicalMaterial({
+                        color: 0x1a2b4c,
+                        metalness: 0.3,
+                        roughness: 0.2,
+                        transparent: true,
+                        opacity: 0.7,
+                    });
+                    const head = new THREE.Mesh(headGeo, headMat);
+                    head.position.y = 0.2;
+                    group.add(head);
+
+                    const ringGeo = new THREE.TorusGeometry(0.65, 0.04, 16, 32);
+                    const ringMat = new THREE.MeshPhysicalMaterial({
+                        color: new THREE.Color('#ff6b9d'),
+                        emissive: new THREE.Color('#ff6b9d'),
+                        emissiveIntensity: 0.3,
+                        metalness: 0.8,
+                        roughness: 0.1,
+                        transparent: true,
+                        opacity: 0.4,
+                    });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = Math.PI / 3;
+                    ring.rotation.z = 0.2;
+                    ring.position.y = 0.35;
+                    group.add(ring);
+
+                    const eyeMat = new THREE.MeshPhysicalMaterial({
+                        color: new THREE.Color('#6c8cff'),
+                        emissive: new THREE.Color('#6c8cff'),
+                        emissiveIntensity: 0.5,
+                        transparent: true,
+                        opacity: 0.6,
+                    });
+                    const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+                    const le = new THREE.Mesh(eyeGeo, eyeMat);
+                    le.position.set(-0.3, 0.45, 0.75);
+                    group.add(le);
+                    const re = new THREE.Mesh(eyeGeo, eyeMat);
+                    re.position.set(0.3, 0.45, 0.75);
+                    group.add(re);
+
+                    group.rotation.y = 0.3;
+                    avatarInit = true;
+
+                    function animate() {
+                        if (!avatarInit) return;
+                        requestAnimationFrame(animate);
+                        group.rotation.y += 0.005;
+                        if (renderer && scene && camera) renderer.render(scene, camera);
+                    }
+                    animate();
+                } catch (e) { console.warn('Avatar init error:', e); }
+            }
+
+            setTimeout(initAvatar, 800);
+
+            // ============================================================
+            // INIT
+            // ============================================================
+            loadNeurons();
+            codeTextarea.value = `# Python Research Example
+        import requests
+        from bs4 import BeautifulSoup
+        
+        def research_topic(topic):
+            """Simulate web research on a topic"""
+            print(f"🔍 Researching: {topic}")
+            print("📊 Gathering information...")
+            print("✅ Research complete!")
+            return {
+                "topic": topic,
+                "findings": f"Found 5 key insights about {topic}",
+                "sources": ["Source 1", "Source 2", "Source 3"]
+            }
+        
+        # Example usage
+        result = research_topic("Neural Networks")
+        print(result)`;
+
+            langIndicator.textContent = 'Python';
+            langIndicator.className = 'lang-indicator py';
+
+            console.log('🧠 Neural Research OS initialized');
+            console.log('📚 Loaded', neurons.length, 'neurons');
+            console.log('🔑 API Key:', CONFIG.apiKey ? '✅ Set' : '❌ Not set');
+            console.log('🤖 Model:', CONFIG.model);
+            console.log('🌡️ Temperature:', CONFIG.temperature);
+            console.log('💡 Press Ctrl+Shift+N to create a neuron');
+
+            // Check for API key on load
+            if (!CONFIG.apiKey) {
+                showToast('⚠️ Please configure your API key in the settings panel', 4000);
+                document.getElementById('configPanel').classList.add('active');
+            }
+
+        })();
+    </script>
+
+</body>
+</html>

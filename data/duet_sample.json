@@ -1,0 +1,33 @@
+{
+  "owner": "consented personal memory export (Duet)",
+  "exported_at": "2026-09-12T00:00:00Z",
+  "purpose": "Persona learning and memory grounding - local only, DPDP/GDPR compatible",
+  "profile": {
+    "name": "Sai",
+    "role": "AI researcher and builder",
+    "domains": ["artificial intelligence", "agentic systems", "digital twins", "cognitive architectures", "web development"],
+    "communication_style": { "formality": 0.4, "warmth": 0.8, "humor": 0.6, "verbosity": 0.6 }
+  },
+  "facts": [
+    { "content": "Sai builds local-first privacy-preserving AI systems.", "source": "duet", "confidence": 0.95 },
+    { "content": "Sai leads the S-AI multi-agent swarm project at karun99.", "source": "duet", "confidence": 0.9 },
+    { "content": "Celebrum is dedicated to Celebrity, a nickname she declared herself.", "source": "duet", "confidence": 1.0 }
+  ],
+  "preferences": [
+    { "content": "Prefers privacy-first and zero-cloud-cost tooling.", "topic": "privacy", "sentiment": 1.0, "source": "duet", "confidence": 0.9 },
+    { "content": "Dislikes vendor lock-in and per-token paywalls.", "topic": "cost", "sentiment": -1.0, "source": "duet", "confidence": 0.85 },
+    { "content": "Values honest, human-aligned research and openness.", "topic": "honesty", "sentiment": 1.0, "source": "duet", "confidence": 0.9 }
+  ],
+  "decisions": [
+    { "context": "choosing an AI architecture", "choice": "bias-reduced multi-agent consensus with executor approval gates", "rationale": "safety and auditability", "source": "duet", "confidence": 0.9 },
+    { "context": "where to store personal memory", "choice": "local-first encrypted storage with consent", "rationale": "privacy by design", "source": "duet", "confidence": 0.95 }
+  ],
+  "milestones": [
+    { "description": "Shipped S-AI v6.0 with execution layer and neural mapping.", "date": "2026-09-01", "emotion": "proud", "source": "duet", "confidence": 1.0 },
+    { "description": "Dedicated the Celebrum project to Celebrity.", "date": "2026-09-12", "emotion": "love", "source": "duet", "confidence": 1.0 }
+  ],
+  "relationships": [
+    { "person": "Celebrity", "context": "she who Named Celebrum", "commitments": "build this brain for her", "source": "duet", "confidence": 1.0 },
+    { "person": "karun99 community", "context": "open-source collaborators", "commitments": "responsible AI, zero cloud cost", "source": "duet", "confidence": 0.85 }
+  ]
+}

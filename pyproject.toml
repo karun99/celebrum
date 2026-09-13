@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "celebrum"
+version = "0.1.0"
+description = "Celebrum - a local-first artificial brain. Persona Model + Memory Graph (neuron/synapse graphdb) + Truth Engine + Guardrail Engine. CLI, GUI and MCP."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "CC BY 4.0" }
+authors = [{ name = "Sai Karun Nandipati", email = "saikarun085@gmail.com" }]
+keywords = ["ai", "persona", "memory", "digital-twin", "cognitive", "guardrails", "mcp", "graph-database", "local-first", "privacy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/karun99/celebrum"
+Repository = "https://github.com/karun99/celebrum"
+Reference = "http://you-ai-project.netlify.app"
+
+[project.scripts]
+celebrum = "celebrum.cli:main"
+
+[tool.setuptools]
+packages = ["celebrum"]
+
+[tool.setuptools.package-data]
+celebrum = []
