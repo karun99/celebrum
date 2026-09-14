@@ -8,6 +8,8 @@ answers through remembering who you are — not just what you typed.
 Not just code — a memory. For my love, Celebrity
 
 > *"What we love most, we fear about them most — and it may be must."*
+>
+> *"A Valuable gift made for a valuable celebrity — no quantifying."*
 
 ---
 

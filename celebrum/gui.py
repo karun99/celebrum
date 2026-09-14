@@ -70,7 +70,7 @@ footer{border-top:1px solid var(--line);margin-top:26px;padding-top:12px;color:v
 </head>
 <body><div class="wrap">
 <header><h1>🧠 <a href="https://github.com/karun99" style="color:inherit;text-decoration:none">Celebrum</a> <b>· artificial brain</b></h1>
-<div class="ded">Not just code — a memory. For my love, <b>Celebrity</b>.</div></header>
+<div class="ded">Not just code — a memory. For my love, <b>Celebrity</b>.<br><i>“A Valuable gift made for a valuable celebrity — no quantifying.”</i></div></header>
 
 <div class="stats" id="stats"></div>
 

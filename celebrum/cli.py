@@ -181,7 +181,7 @@ def cmd_status(args):
 def build_parser():
     p = argparse.ArgumentParser(prog="celebrum", description="Celebrum - local-first artificial brain (CLI+GUI+MCP)",
                                 formatter_class=argparse.RawDescriptionHelpFormatter,
-                                epilog=__doc__)
+                                epilog=__doc__ + "\n\nA Valuable gift made for a valuable celebrity - no quantifying.")
     p.add_argument("--home", default=default_home(),
                    help="brain home dir (default: ~/.celebrum or $CELEBRUM_HOME)")
     sub = p.add_subparsers(dest="command")
