@@ -17,6 +17,7 @@ Commands:
   persona              show the current Persona Model
   truth                show the Truth Index and flagged memories
   validate             run the neural validation harness
+  neurobot             run the cognitive-robotics validation (spike + control-loop + adversarial)
   graph [--out FILE]   export the neuron/synapse graphdb as JSON
   tensor               show Personal Tensor Memory info
   audit [-n N]         tail the audit log
@@ -144,6 +145,14 @@ def cmd_validate(args):
     sys.exit(0 if ok else 2)
 
 
+def cmd_neurobot(args):
+    from .neurobot import validate_cognitive_robotics
+    result = validate_cognitive_robotics(electrodes=args.electrodes, time_bins=args.bins,
+                                         max_control_steps=args.steps)
+    _print(result)
+    sys.exit(0 if result["passed"] else 2)
+
+
 def cmd_graph(args):
     engine = _require(Celebrum(home=args.home))
     data = engine.graph.graph_export(cytoscape=True)
@@ -210,6 +219,11 @@ def build_parser():
     sub.add_parser("propose", help="propose guardrails").set_defaults(func=cmd_propose)
     sub.add_parser("guardrails", help="list guardrails").set_defaults(func=cmd_guardrails)
     sub.add_parser("validate", help="run validation harness").set_defaults(func=cmd_validate)
+    c = sub.add_parser("neurobot", help="run cognitive-robotics validation")
+    c.add_argument("--electrodes", type=int, default=12, help="MEA electrode count")
+    c.add_argument("--bins", type=int, default=32, help="time bins per window")
+    c.add_argument("--steps", type=int, default=40, help="max closed-loop control steps")
+    c.set_defaults(func=cmd_neurobot)
     sub.add_parser("tensor", help="PTM info").set_defaults(func=cmd_tensor)
     sub.add_parser("status", help="brain snapshot").set_defaults(func=cmd_status)
 

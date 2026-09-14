@@ -13,9 +13,12 @@ Checks
 4. PTM (Personal Tensor Memory) privacy + size budget (<=8 MB) + similarity
                                sanity.
 5. llm-guardrails / DPDP ..... conformance matrix (consent, purpose limitation,
-                               data minimization, right to erasure, reversibility,
-                               auditability).
+                                data minimization, right to erasure, reversibility,
+                                auditability).
 6. Performance ............... recall under 500 ms at 10k neurons.
+7. Cognitive robotics ......... organoid/MEA spike simulation, closed-loop maze
+                                control, and adversarial neural-security testing
+                                (DishBrain / DARPA O-CIRCUIT BPU lines).
 
 Every run is written to the audit log so compliance is provable.
 """
@@ -55,6 +58,7 @@ def run(engine) -> dict:
     report["checks"].append(_ptm(engine))
     report["checks"].append(_dpdp(engine))
     report["checks"].append(_performance(engine))
+    report["checks"].append(_neurobot(engine))
 
     failed = [c for c in report["checks"] if c["status"] == RESULT_FAIL]
     warned = [c for c in report["checks"] if c["status"] == RESULT_WARN]
@@ -270,4 +274,43 @@ def _performance(engine):
         "status": status,
         "details": {"neurons": 10000, "recall_ms": round(elapsed * 1000, 1), "budget_ms": 500},
         "recommendation": "none" if status == RESULT_OK else "consider an FTS index for very large memories",
+    }
+
+
+def _neurobot(engine):
+    """Cognitive-robotics validation: organoid/MEA spike simulation, closed-loop
+    robotic control, and adversarial neural-security stress testing.
+
+    Sources: DishBrain-style organoid maze control (closed-loop electrical
+    feedback), organoid engineering-task control, and DARPA O-CIRCUIT BPU
+    security validation (including adversarial signal injection on MEAs).
+    """
+    from .neurobot import validate_cognitive_robotics
+
+    result = validate_cognitive_robotics(electrodes=12, time_bins=32, max_control_steps=40)
+    adv = result["adversarial"]
+    robotics = result["robotics"]
+    spike = result["spike"]
+
+    ok = result["passed"] and adv["summary"]["mean_security_score"] >= 0.5
+    status = RESULT_OK if ok else RESULT_WARN
+    return {
+        "name": "neurobot-cognitive-robotics",
+        "source": "DishBrain / organoid MEA maze control + DARPA O-CIRCUIT BPU security validation",
+        "status": status,
+        "details": {
+            "spike_electrodes": spike["electrodes"],
+            "spike_mean_rate": spike["mean_rate"],
+            "synchrony_index": spike["synchrony_index"],
+            "maze_solved": robotics["solved"],
+            "control_steps_used": robotics["steps_used"],
+            "adversarial_attacks": adv["summary"]["attacks"],
+            "attacks_detected": adv["summary"]["detected"],
+            "mean_security_score": adv["summary"]["mean_security_score"],
+            "stress_level": adv["summary"]["stress_level"],
+            "coherence_baseline": adv["baseline"]["coherence"],
+            "verdict": ("closed-loop control navigates the maze and the neural security layer "
+                        "detects adversarial stimulation" if ok else "cognitive-robotics gates below target"),
+        },
+        "recommendation": "none" if status == RESULT_OK else "raise spike coherence / strengthen neural security layer",
     }
