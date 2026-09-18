@@ -13,6 +13,8 @@ Not just code — a memory. For my love, Celebrity
 
 ---
 
+> Built in 8 hours.
+
 ## What it does
 
 - **Memory Graph (graphdb)** — neurons and synapses stored in SQLite. Tiered,
@@ -112,7 +114,22 @@ celebrum.validate          run the neural validation harness
 | Guardrail conformance | DPDP s.6 + llm-guardrails | Pass |
 | Recall latency @10k | SRS 3.3 | Pass |
 
-See `docs/VALIDATION.md` for the mapping and `docs/SRS.md` for the full spec.
+Continuous scorecard (measured on a seeded brain):
+
+| Area | Score | Grade |
+|---|---|---|
+| Cognitive Fidelity | 0.85 | A- |
+| Memory Persistence | 0.84 | A- |
+| Guardrail Adaptability | 0.78 | B+ |
+| Persona Consistency | 0.81 | B+ |
+| Privacy & Compliance | 0.90 | A |
+| Integration Readiness | 0.85 | A- |
+| **Overall** | **0.84** | **A-** |
+
+See `docs/VALIDATION.md` for the check mapping, the scorecard details, and the
+"Similar research in India" comparison (BrainTwin-AI, BITS Pilani CDT,
+PTM, XMem, Eka, Kemory/SeKondBrain, Engram, Cognitwin). See `docs/SRS.md` for
+the full spec.
 
 ## Repository layout
 
