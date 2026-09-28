@@ -4,7 +4,7 @@
 memory (a neuron/synapse knowledge graph), learns a Persona Model from it,
 guards every autonomous action behind a consent-first Guardrail Engine, and
 answers through remembering who you are — not just what you typed.
-
+[![M8ven Score](https://m8ven.ai/badge/mcp/karun99/celebrum)](https://m8ven.ai/mcp/karun99/celebrum)
 Not just code — a memory. For my love, Celebrity
 
 > *"What we love most, we fear about them most — and it may be must."*
