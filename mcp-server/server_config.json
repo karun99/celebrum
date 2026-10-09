@@ -1,0 +1,17 @@
+{
+  "app": {
+    "name": "celebrum",
+    "version": "unknown",
+    "description": "Celebrum - a local-first artificial brain. Persona Model + Memory Graph (neuron/synapse graphdb) + Truth Engine + Guardrail Engine. CLI, GUI and MCP."
+  },
+  "stack": "python",
+  "routes": [],
+  "pages": [],
+  "base_url": "http://localhost:8000",
+  "module": "celebrum",
+  "scripts": {},
+  "cli_entry": null,
+  "server": "mcp-server/mcp_server.py",
+  "runner": "python",
+  "runner_cmd": "python3"
+}
