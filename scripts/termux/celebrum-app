@@ -1,0 +1,353 @@
+#!/usr/bin/env bash
+# celebrum-app - one-tap launcher that turns Celebrum into an Android app
+# (Termux), or a desktop app on Linux/macOS.
+#
+# Installed by install-termux.sh. It starts the local dashboard in the
+# background, opens it in the browser, and posts a Termux notification with
+# Open / Stop buttons. The brain keeps living in ~/.celebrum.
+#
+# Usage:
+#   celebrum-app [start] [--port N] [--host H] [--no-open] [--no-notify]
+#   celebrum-app stop
+#   celebrum-app restart
+#   celebrum-app status
+#   celebrum-app open
+#   celebrum-app url
+#   celebrum-app logs [-f]
+#   celebrum-app doctor
+#   celebrum-app version
+
+set -uo pipefail
+
+SELF="${BASH_SOURCE[0]:-$0}"
+case "$SELF" in
+  */*) SELF="$(cd "$(dirname "$SELF")" 2>/dev/null && pwd)/$(basename "$SELF")" ;;
+  *) SELF="$(command -v -- "$SELF" 2>/dev/null || printf '%s' "$SELF")" ;;
+esac
+
+DEFAULT_HOME="${CELEBRUM_HOME:-$HOME/.celebrum}"
+ENV_FILE="$DEFAULT_HOME/app.env"
+
+# Generated config (home, venv paths, preferred port).
+if [ -f "$ENV_FILE" ]; then
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+fi
+
+APP_HOME="${CELEBRUM_HOME:-$DEFAULT_HOME}"
+BIN="${CELEBRUM_BIN:-$APP_HOME/venv/bin/celebrum}"
+PY="${CELEBRUM_PY:-$APP_HOME/venv/bin/python}"
+if [ ! -x "$PY" ]; then
+  PY="$(command -v python3 2>/dev/null || command -v python 2>/dev/null || true)"
+fi
+
+HOST="${CELEBRUM_HOST:-127.0.0.1}"
+PORT="${CELEBRUM_PORT:-8477}"
+LOG="$APP_HOME/app.log"
+PIDFILE="$APP_HOME/app.pid"
+URLFILE="$APP_HOME/app.url"
+OPEN=1
+NOTIFY=1
+FOLLOW=0
+
+log()  { printf '\033[1;36m==>\033[0m %s\n' "$*" >&2; }
+warn() { printf '\033[1;33mwarn:\033[0m %s\n' "$*" >&2; }
+die()  { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
+
+need_py() {
+  [ -n "$PY" ] && [ -x "$PY" ] || die "python not found - re-run install-termux.sh"
+}
+
+# Run an Android/Termux helper with a hard timeout: if the termux-api app is
+# missing, helpers can block forever waiting for the API socket.
+run_t() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout 5 "$@"
+  else
+    "$@"
+  fi
+}
+
+notify_cmd() {
+  command -v termux-notification >/dev/null 2>&1
+}
+
+read_pid() { [ -f "$PIDFILE" ] && cat "$PIDFILE" 2>/dev/null || true; }
+
+is_running() {
+  local p
+  p="$(read_pid)"
+  [ -n "$p" ] || return 1
+  kill -0 "$p" 2>/dev/null || return 1
+  # A stale pid file could point at a recycled pid; make sure it is ours.
+  if [ -r "/proc/$p/cmdline" ]; then
+    tr '\0' ' ' <"/proc/$p/cmdline" | grep -q "celebrum gui" || return 1
+  fi
+  return 0
+}
+
+browse_url() {
+  # Use loopback for the browser even when bound to 0.0.0.0 (LAN mode).
+  local host="$1"
+  [ "$host" = "0.0.0.0" ] && host="127.0.0.1"
+  printf 'http://%s:%s' "$host" "${2:-$PORT}"
+}
+
+current_url() {
+  if [ -s "$URLFILE" ]; then
+    cat "$URLFILE"
+  else
+    browse_url "$HOST" "$PORT"
+  fi
+}
+
+port_free() {
+  need_py
+  "$PY" - "$1" "$2" <<'PY' 2>/dev/null
+import socket, sys
+port, host = int(sys.argv[1]), sys.argv[2]
+s = socket.socket()
+try:
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((host, port))
+except OSError:
+    sys.exit(1)
+finally:
+    s.close()
+PY
+}
+
+choose_port() {
+  local p="$1" i=0
+  while [ "$i" -lt 25 ]; do
+    if port_free "$p" "$HOST"; then
+      printf '%s' "$p"
+      return 0
+    fi
+    p=$((p + 1))
+    i=$((i + 1))
+  done
+  die "no free port between $1 and $(( $1 + 24 )) - pass --port N"
+}
+
+wait_ready() {
+  need_py
+  "$PY" - "$1" <<'PY'
+import sys, time, urllib.request
+url = sys.argv[1].rstrip("/") + "/api/state"
+for _ in range(120):          # ~30s
+    try:
+        with urllib.request.urlopen(url, timeout=1) as r:
+            r.read(1)
+        sys.exit(0)
+    except Exception:
+        time.sleep(0.25)
+sys.exit(1)
+PY
+}
+
+open_browser() {
+  local url="$1"
+  log "dashboard: $url"
+  if command -v termux-open-url >/dev/null 2>&1; then
+    run_t termux-open-url "$url" >/dev/null 2>&1 && return 0
+  fi
+  # Works on most Androids even without termux-api installed.
+  if command -v am >/dev/null 2>&1; then
+    run_t am start -a android.intent.action.VIEW -d "$url" >/dev/null 2>&1 && return 0
+  fi
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 && return 0
+  fi
+  if command -v open >/dev/null 2>&1; then
+    open "$url" >/dev/null 2>&1 && return 0
+  fi
+  warn "open this URL in your browser: $url"
+}
+
+post_notification() {
+  notify_cmd || return 0
+  local url="$1" cmd="${CELEBRUM_CMD:-$SELF}"
+  run_t termux-notification \
+    --id celebrum \
+    --title "Celebrum" \
+    --content "Brain live at $url" \
+    --priority low \
+    --button1 "Open" --button1-action "$cmd open" \
+    --button2 "Stop" --button2-action "$cmd stop" \
+    >/dev/null 2>&1 || true
+}
+
+remove_notification() {
+  notify_cmd && run_t termux-notification --id celebrum --remove >/dev/null 2>&1 || true
+}
+
+stop_app() {
+  local p
+  if ! is_running; then
+    rm -f "$PIDFILE" "$URLFILE"
+    remove_notification
+    log "Celebrum is not running"
+    return 0
+  fi
+  p="$(read_pid)"
+  log "stopping Celebrum (pid $p)"
+  kill "$p" 2>/dev/null || true
+  local i=0
+  while [ "$i" -lt 25 ] && kill -0 "$p" 2>/dev/null; do
+    sleep 0.2
+    i=$((i + 1))
+  done
+  kill -9 "$p" 2>/dev/null || true
+  rm -f "$PIDFILE" "$URLFILE"
+  if command -v termux-wake-unlock >/dev/null 2>&1; then
+    ( run_t termux-wake-unlock >/dev/null 2>&1 & )
+  fi
+  remove_notification
+  log "stopped"
+}
+
+start_app() {
+  if is_running; then
+    local url
+    url="$(current_url)"
+    log "already running at $url"
+    [ "$OPEN" = 1 ] && open_browser "$url"
+    [ "$NOTIFY" = 1 ] && post_notification "$url"
+    return 0
+  fi
+
+  [ -x "$BIN" ] || die "celebrum not found at $BIN - re-run install-termux.sh"
+  need_py
+  mkdir -p "$APP_HOME" || die "cannot create $APP_HOME"
+
+  local port url
+  port="$(choose_port "$PORT")"
+  if [ "$port" != "$PORT" ]; then
+    warn "port $PORT is busy, using $port"
+  fi
+  : >"$LOG"
+  log "starting Celebrum on $HOST:$port"
+
+  (
+    cd "$APP_HOME" || exit 1
+    PYTHONUNBUFFERED=1 nohup "$BIN" gui --host "$HOST" --port "$port" >>"$LOG" 2>&1 &
+    echo $! >"$PIDFILE"
+  )
+  # Keep Android from freezing the brain while it is running (best effort).
+  if command -v termux-wake-lock >/dev/null 2>&1; then
+    ( run_t termux-wake-lock >/dev/null 2>&1 & )
+  fi
+
+  url="$(browse_url "$HOST" "$port")"
+  if ! wait_ready "$url"; then
+    warn "dashboard did not answer; last log lines:"
+    tail -n 30 "$LOG" >&2 2>/dev/null || true
+    stop_app >/dev/null 2>&1 || true
+    die "failed to start the dashboard (see $LOG)"
+  fi
+
+  printf '%s' "$url" >"$URLFILE"
+  log "ready at $url"
+  [ "$OPEN" = 1 ] && open_browser "$url"
+  [ "$NOTIFY" = 1 ] && post_notification "$url"
+  return 0
+}
+
+show_status() {
+  if is_running; then
+    printf 'running (pid %s) at %s\n' "$(read_pid)" "$(current_url)"
+  else
+    printf 'stopped (brain home: %s)\n' "$APP_HOME"
+  fi
+}
+
+show_logs() {
+  [ -f "$LOG" ] || { printf 'no log yet at %s\n' "$LOG"; return 0; }
+  if [ "$FOLLOW" = 1 ]; then
+    tail -n 60 -f "$LOG"
+  else
+    tail -n 60 "$LOG"
+  fi
+}
+
+doctor() {
+  printf 'celebrum-app doctor\n'
+  printf '  app home : %s\n' "$APP_HOME"
+  printf '  binary   : %s %s\n' "$BIN" "$([ -x "$BIN" ] && printf '[ok]' || printf '[missing]')"
+  printf '  python   : %s %s\n' "${PY:-none}" "$([ -n "$PY" ] && [ -x "$PY" ] && printf '[ok]' || printf '[missing]')"
+  printf '  brain db : %s %s\n' "$APP_HOME/celebrum.db" "$([ -f "$APP_HOME/celebrum.db" ] && printf '[ok]' || printf '[missing]')"
+  printf '  termux   : %s\n' "$([ -n "${TERMUX_VERSION:-}" ] && printf 'yes' || printf 'no')"
+  printf '  termux-api: %s\n' "$(notify_cmd && printf 'yes' || printf 'no (notifications disabled)')"
+  if is_running; then
+    printf '  status   : running at %s\n' "$(current_url)"
+  else
+    printf '  status   : stopped (start it with: celebrum-app)\n'
+  fi
+  [ -x "$BIN" ] && [ -n "$PY" ] && [ -x "$PY" ] && [ -f "$APP_HOME/celebrum.db" ] && return 0
+  warn "run install-termux.sh to fix the missing pieces"
+  return 1
+}
+
+show_version() {
+  need_py
+  "$PY" - <<'PY' 2>/dev/null || printf 'celebrum (version unknown)\n'
+import celebrum
+print("celebrum", celebrum.__version__)
+PY
+}
+
+usage() {
+  cat <<'EOF'
+celebrum-app - one-tap launcher that turns Celebrum into an Android app.
+
+Usage:
+  celebrum-app [start] [--port N] [--host H] [--no-open] [--no-notify]
+  celebrum-app stop            stop the background dashboard
+  celebrum-app restart         restart it
+  celebrum-app status          show whether it is running
+  celebrum-app open            open the dashboard in the browser
+  celebrum-app url             print the dashboard URL
+  celebrum-app logs [-f]       show (or follow) the dashboard log
+  celebrum-app doctor          check the install
+  celebrum-app version         print the Celebrum version
+
+The brain lives in ~/.celebrum and never leaves the device.
+EOF
+}
+
+# ---- argument parsing ------------------------------------------------------
+CMD="start"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    start|stop|restart|status|open|url|logs|doctor|version|help|-h|--help)
+      CMD="$1" ;;
+    --port)
+      [ $# -ge 2 ] || die "--port needs a value"
+      PORT="$2"; shift ;;
+    --port=*) PORT="${1#*=}" ;;
+    --host)
+      [ $# -ge 2 ] || die "--host needs a value"
+      HOST="$2"; shift ;;
+    --host=*) HOST="${1#*=}" ;;
+    --no-open|--no-browser) OPEN=0 ;;
+    --no-notify) NOTIFY=0 ;;
+    -f|--follow) FOLLOW=1 ;;
+    *) die "unknown option: $1 (try: celebrum-app --help)" ;;
+  esac
+  shift
+done
+
+case "$CMD" in
+  start)   start_app ;;
+  stop)    stop_app ;;
+  restart) stop_app; start_app ;;
+  status)  show_status ;;
+  open)    is_running || die "not running - use: celebrum-app start"; open_browser "$(current_url)" ;;
+  url)     current_url; printf '\n' ;;
+  logs)    show_logs ;;
+  doctor)  doctor ;;
+  version) show_version ;;
+  help|-h|--help) usage ;;
+  *) die "unknown command: $CMD (try: celebrum-app --help)" ;;
+esac

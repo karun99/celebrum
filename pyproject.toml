@@ -35,5 +35,9 @@ celebrum = "celebrum.cli:main"
 [tool.setuptools]
 packages = ["celebrum"]
 
+[tool.setuptools.data-files]
+"share/celebrum/data" = ["data/duet_sample.json"]
+"share/celebrum/data/matruswara" = ["data/matruswara/satyasandha.html", "data/matruswara/oi.html"]
+
 [tool.setuptools.package-data]
 celebrum = []

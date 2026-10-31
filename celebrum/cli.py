@@ -49,12 +49,31 @@ def _require(engine):
     return engine
 
 
+def _demo_data_dir():
+    """Locate the bundled demo export (works from a checkout, a wheel, or pipx)."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.environ.get("CELEBRUM_DATA_DIR", ""),
+        os.path.join(here, "data"),
+        os.path.join(os.path.dirname(here), "data"),
+        os.path.join(sys.prefix, "share", "celebrum", "data"),
+        os.path.join(sys.base_prefix, "share", "celebrum", "data"),
+    ]
+    for candidate in candidates:
+        if candidate and os.path.isfile(os.path.join(candidate, "duet_sample.json")):
+            return candidate
+    return None
+
+
 def cmd_init(args):
     if args.demo:
-        import shutil
-        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-        duet = json.load(open(os.path.join(data_dir, "duet_sample.json"), encoding="utf-8"))
+        data_dir = _demo_data_dir()
         engine = Celebrum(home=args.home)
+        if not data_dir:
+            engine.store.log("user", "init", risk="low", details={"demo": True, "data": "missing"}, result="ok")
+            print(f"init brain at {engine.home} (demo data not bundled; memory is empty)")
+            return 0
+        duet = json.load(open(os.path.join(data_dir, "duet_sample.json"), encoding="utf-8"))
         engine.ingest_duet(duet, consent=True, source="duet")
         for name in ("satyasandha.html", "oi.html"):
             src = os.path.join(data_dir, "matruswara", name)

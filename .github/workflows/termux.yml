@@ -1,0 +1,52 @@
+name: Termux installer
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  installer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          bash -n install-termux.sh
+          bash -n scripts/termux/celebrum-app
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck --severity=error install-termux.sh scripts/termux/celebrum-app
+
+      - name: Install, start, query and stop the app
+        env:
+          HOME: ${{ runner.temp }}/home
+        run: |
+          mkdir -p "$HOME"
+          ./install-termux.sh --force --no-shortcut --no-demo \
+            --home "$RUNNER_TEMP/brain" \
+            --venv "$RUNNER_TEMP/venv" \
+            --bin-dir "$RUNNER_TEMP/bin" \
+            --port 8599
+          "$RUNNER_TEMP/bin/celebrum-app" doctor
+          "$RUNNER_TEMP/bin/celebrum-app" start --no-open --no-notify
+          "$RUNNER_TEMP/bin/celebrum-app" status
+          curl -fsS "$("$RUNNER_TEMP/bin/celebrum-app" url)/api/state" >/dev/null
+          "$RUNNER_TEMP/bin/celebrum-app" stop
+
+      - name: Uninstall keeps the brain
+        env:
+          HOME: ${{ runner.temp }}/home
+        run: |
+          ./install-termux.sh --force --uninstall \
+            --home "$RUNNER_TEMP/brain" \
+            --venv "$RUNNER_TEMP/venv" \
+            --bin-dir "$RUNNER_TEMP/bin"
+          test -f "$RUNNER_TEMP/brain/celebrum.db"
+          test ! -x "$RUNNER_TEMP/bin/celebrum-app"
+          test ! -d "$RUNNER_TEMP/venv"

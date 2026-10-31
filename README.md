@@ -52,6 +52,22 @@ celebrum mcp             # stdio JSON-RPC server for AI agents
 
 Works on Linux, macOS, Windows, Raspberry Pi, and Android (Termux).
 
+### Android / Termux (one-tap app)
+
+The Termux installer turns Celebrum into a phone app: a private venv, a
+`celebrum-app` launcher, a Termux:Widget home-screen shortcut, notifications,
+and optional Termux:Boot autostart.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh | bash
+celebrum-app
+```
+
+`celebrum-app` starts the dashboard and opens it in your browser at
+`http://127.0.0.1:8477`; `celebrum-app stop` shuts it down. Everything stays
+on the device. See [docs/TERMUX.md](docs/TERMUX.md) for the widget/boot
+setup, LAN mode, and troubleshooting.
+
 ## Quick tour
 
 ```bash
