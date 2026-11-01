@@ -5,6 +5,26 @@ Android through [Termux](https://termux.dev). The Termux installer makes it
 feel like an app: one command on the home screen starts the brain and opens the
 dashboard, with a notification that can reopen or stop it.
 
+## TL;DR
+
+```bash
+# 1. install (Termux)
+curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh | bash
+
+# 2. start the app
+celebrum-app
+
+# 3. every other command
+celebrum-app status      # running?
+celebrum-app stop        # stop it
+celebrum-app logs -f     # follow the log
+celebrum-app doctor      # check the install
+```
+
+That is the whole install. The rest of this page explains the widget, boot
+autostart, LAN mode, backup, and troubleshooting. See
+[COMMANDS.md](COMMANDS.md) for every command and flag.
+
 ## What the installer sets up
 
 | Piece | Where |

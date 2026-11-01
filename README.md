@@ -15,6 +15,38 @@ Not just code — a memory. For my love, Celebrity
 
 > Built in 8 hours.
 
+## Quick start
+
+### Android / Termux (one command)
+
+1. Install **[Termux](https://f-droid.org/packages/com.termux/)** from F-Droid.
+2. Open Termux and paste:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh | bash
+```
+
+3. Start the app:
+
+```bash
+celebrum-app
+```
+
+The dashboard opens at `http://127.0.0.1:8477`. Install **Termux:Widget** from
+F-Droid and add the widget for a one-tap home-screen button. Full guide:
+[docs/TERMUX.md](docs/TERMUX.md).
+
+### Desktop / server
+
+```bash
+pip install .            # or: pipx install . / uv tool install .
+celebrum init --demo     # first brain, seeded with an example memory export
+celebrum gui             # dashboard at http://localhost:8477
+```
+
+Every command, flag, and example lives in
+[docs/COMMANDS.md](docs/COMMANDS.md).
+
 ## What it does
 
 - **Memory Graph (graphdb)** — neurons and synapses stored in SQLite. Tiered,
@@ -39,34 +71,63 @@ Not just code — a memory. For my love, Celebrity
 - **Inference as a service** — a standards-based **MCP** server and a
   zero-dependency **web dashboard**.
 
-## Install everywhere
+## Install
 
-Pure Python 3.9+ standard library only. No compiled deps.
+Pure Python 3.9+ standard library only. No compiled deps. Works on Linux,
+macOS, Windows, Raspberry Pi, and Android (Termux).
+
+| Platform | Install | Start |
+|---|---|---|
+| Android / Termux | `curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh \| bash` | `celebrum-app` |
+| Desktop / server | `pip install .` (or `pipx install .`, `uv tool install .`) | `celebrum gui` |
+| Docker | `docker build -t celebrum .` | `docker run --rm -p 8477:8477 celebrum gui --host 0.0.0.0` |
+
+**Android installer options**
 
 ```bash
-pip install .            # or: pipx install . / uv tool install .
-celebrum init --demo     # first brain, seeded with an example memory export
-celebrum gui             # open the dashboard at http://localhost:8477
-celebrum mcp             # stdio JSON-RPC server for AI agents
+./install-termux.sh --with-boot     # autostart after reboot (Termux:Boot)
+./install-termux.sh --no-demo       # empty brain instead of demo memories
+./install-termux.sh --no-shortcut   # skip the Termux:Widget shortcut
+./install-termux.sh --port 8686     # different dashboard port
+./install-termux.sh --update        # pkg update before installing
 ```
 
-Works on Linux, macOS, Windows, Raspberry Pi, and Android (Termux).
-
-### Android / Termux (one-tap app)
-
-The Termux installer turns Celebrum into a phone app: a private venv, a
-`celebrum-app` launcher, a Termux:Widget home-screen shortcut, notifications,
-and optional Termux:Boot autostart.
+**Update**
 
 ```bash
+# Android
+celebrum-app stop
 curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh | bash
 celebrum-app
+
+# Desktop (from a checkout)
+git pull && pip install .
 ```
 
-`celebrum-app` starts the dashboard and opens it in your browser at
-`http://127.0.0.1:8477`; `celebrum-app stop` shuts it down. Everything stays
-on the device. See [docs/TERMUX.md](docs/TERMUX.md) for the widget/boot
-setup, LAN mode, and troubleshooting.
+**Uninstall** (Android, keeps your brain)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh | bash -s -- --uninstall
+```
+
+## App commands
+
+`celebrum-app` is the one-tap launcher installed by the Termux installer.
+
+| Command | What it does |
+|---|---|
+| `celebrum-app` | Start the dashboard and open the browser |
+| `celebrum-app stop` | Stop the background dashboard |
+| `celebrum-app restart` | Restart it |
+| `celebrum-app status` | Show whether it is running |
+| `celebrum-app open` | Open the dashboard again |
+| `celebrum-app url` | Print the dashboard URL |
+| `celebrum-app logs -f` | Follow the dashboard log |
+| `celebrum-app doctor` | Check the install |
+| `celebrum-app version` | Print the Celebrum version |
+
+Useful flags: `--port N`, `--host 0.0.0.0` (LAN), `--no-open`, `--no-notify`.
+Run `celebrum-app --help` for the in-terminal version.
 
 ## Quick tour
 
@@ -90,6 +151,8 @@ celebrum ingest html ~/notes/friend.html # extracts neuron/synapse fragments
 celebrum ingest web https://...          # SSRF-guarded, <=5MB, consent-gated
 ```
 
+Full CLI reference: [docs/COMMANDS.md](docs/COMMANDS.md).
+
 ## The web dashboard
 
 `celebrum gui` starts a local dashboard (default `http://localhost:8477`):
@@ -106,7 +169,19 @@ celebrum ingest web https://...          # SSRF-guarded, <=5MB, consent-gated
 
 ## MCP for agents
 
-Expose your brain to any MCP client (Claude, Cursor, agents):
+Expose your brain to any MCP client (Claude, Cursor, agents) over stdio:
+
+```bash
+celebrum mcp
+```
+
+```json
+{
+  "mcpServers": {
+    "celebrum": { "command": "celebrum", "args": ["mcp"] }
+  }
+}
+```
 
 ```
 celebrum.recall            identity-grounded memory recall
@@ -115,6 +190,48 @@ celebrum.propose_guardrail propose a guardrail change (audited)
 celebrum.approve_guardrail approve (high tier requires a human identity)
 celebrum.snapshot          snapshot + drift comparison
 celebrum.validate          run the neural validation harness
+```
+
+## Troubleshooting
+
+```bash
+celebrum-app doctor        # Android: check launcher + brain + termux-api
+celebrum-app logs -f       # follow the dashboard log
+celebrum status            # brain summary
+celebrum validate          # full harness (all checks should pass)
+```
+
+- Browser does not open → install **Termux:API**, or open
+  `celebrum-app url` manually.
+- Dashboard stops in the background → run `termux-wake-lock` and disable
+  battery optimization for Termux.
+- Port already in use → `celebrum-app start --port 8686`.
+- Demo seeding fails → re-run the installer; data is bundled under
+  `share/celebrum/data`.
+
+More in [docs/TERMUX.md](docs/TERMUX.md) and
+[docs/COMMANDS.md](docs/COMMANDS.md).
+
+## Repository layout
+
+```
+install-termux.sh    Android/Termux installer (app + widget + boot)
+scripts/termux/      celebrum-app launcher
+celebrum/            the brain (packages)
+  store.py           SQLite node/edge store + append-only audit
+  memory.py          neuron/synapse MemoryGraph, decay, recall
+  persona.py         PersonaModel + appeal/feedback, identity closure
+  tensor.py          feature-hashed PersonalTensor (no plaintext)
+  truth.py           Satya: veracity + truth index + contradictions
+  guardrails.py      GuardrailEngine (DPDP/GDPR gates + audit)
+  simulate.py        stance / conflicts / appeal reasoning
+  ingest.py          duet/html/web ingestion (consent + SSRF guard)
+  validate.py        the 6-check neural validation harness
+  engine.py          Celebrum facade
+  cli.py, gui.py, mcp.py, __main__.py
+data/                demo export + matruswara sources (satyasandha, oi)
+tests/               unittest suite (python -m unittest discover -s tests)
+docs/                SRS, TERMUX guide, command reference, validation
 ```
 
 ## Validation
@@ -146,26 +263,6 @@ See `docs/VALIDATION.md` for the check mapping, the scorecard details, and the
 "Similar research in India" comparison (BrainTwin-AI, BITS Pilani CDT,
 PTM, XMem, Eka, Kemory/SeKondBrain, Engram, Cognitwin). See `docs/SRS.md` for
 the full spec.
-
-## Repository layout
-
-```
-celebrum/            the brain (packages)
-  store.py           SQLite node/edge store + append-only audit
-  memory.py          neuron/synapse MemoryGraph, decay, recall
-  persona.py         PersonaModel + appeal/feedback, identity closure
-  tensor.py          feature-hashed PersonalTensor (no plaintext)
-  truth.py           Satya: veracity + truth index + contradictions
-  guardrails.py      GuardrailEngine (DPDP/GDPR gates + audit)
-  simulate.py        stance / conflicts / appeal reasoning
-  ingest.py          duet/html/web ingestion (consent + SSRF guard)
-  validate.py        the 6-check neural validation harness
-  engine.py          Celebrum facade
-  cli.py, gui.py, mcp.py, __main__.py
-data/                demo export + matruswara sources (satyasandha, oi)
-tests/               unittest suite (python -m unittest discover -s tests)
-docs/                SRS + validation mapping
-```
 
 ## Privacy by design
 

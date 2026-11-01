@@ -1,6 +1,22 @@
 # Installation
 
-## Desktop / server
+## Quick start
+
+### Android / Termux (one command)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh | bash
+celebrum-app
+```
+
+That installs Python + Celebrum in a private venv, seeds a demo brain, adds the
+`celebrum` and `celebrum-app` commands, and creates a Termux:Widget shortcut.
+The dashboard opens at `http://127.0.0.1:8477`.
+
+Full Android guide, including the widget, boot autostart, LAN mode and
+uninstall: [TERMUX.md](TERMUX.md).
+
+### Desktop / server
 
 Pure Python 3.9+, no compiled dependencies:
 
@@ -12,18 +28,12 @@ celebrum init --demo
 celebrum gui         # http://localhost:8477
 ```
 
-## Android (Termux)
-
-One command installs the brain and a one-tap `celebrum-app` launcher:
+### Docker
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/karun99/celebrum/main/install-termux.sh | bash
-celebrum-app
+docker build -t celebrum .
+docker run --rm -p 8477:8477 celebrum gui --host 0.0.0.0
 ```
-
-The launcher starts the dashboard, opens the browser, and adds a Termux:Widget
-home-screen shortcut (plus optional Termux:Boot autostart). See
-[TERMUX.md](TERMUX.md) for the full guide, LAN mode, and troubleshooting.
 
 ## Verify
 
@@ -32,9 +42,15 @@ celebrum status
 celebrum validate
 ```
 
-For the test suite:
+Run the test suite:
 
 ```bash
 pip install pytest
 pytest -q
 ```
+
+## Next
+
+- [Command reference](COMMANDS.md) — every CLI and app command
+- [Usage](usage.md) — a tour of the brain
+- [FAQ](faq.md) — common questions
