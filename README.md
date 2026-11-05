@@ -264,6 +264,37 @@ See `docs/VALIDATION.md` for the check mapping, the scorecard details, and the
 PTM, XMem, Eka, Kemory/SeKondBrain, Engram, Cognitwin). See `docs/SRS.md` for
 the full spec.
 
+## Ecosystem: Zoe and Emoja
+
+Celebrum is the **memory** substrate — one person, a governed graph of what they
+told you, verified against a truth index. It is complementary to
+[**Project Zoe**](https://github.com/karun99/zoe), the local-first companion
+stack.
+
+Zoe now ships **Emoja**, its consented, non-diagnostic reflection layer: a
+module of Zoe, not a second project. Emoja reads only the user's own text and
+returns an emoji sequence, an OKLCH-blended hex palette, a pattern in words, a
+Shatkona balance check, a symbolic depth rung, and one plain sentence. Its
+trust boundary is explicit — `SUNO` is the sole raw-text input, `DRISHTI` holds
+an enforced veto over aesthetic output, and high distress or crisis drops the
+aesthetics entirely. It is **not** therapy, emotion detection, or a diagnostic
+tool, and it does not read faces, voices, biosignals, or keystrokes.
+
+```bash
+zoe emoja "I felt tired after the meeting but I am steady now"
+zoe emoja --json "I feel a little sad."
+```
+
+- Emoja spec: <https://github.com/karun99/zoe/blob/main/docs/EMOJA.md>
+- Enforcement status: <https://github.com/karun99/zoe/blob/main/docs/ENFORCEMENT.md>
+- Self-check T1–T8: `pytest tests/emoja -q` → 8 passed
+
+**Honest boundary.** Emoja is a reflection surface, not a memory store. If you
+want Zoe to remember what a user tells you across sessions, that is Celebrum's
+job, with Celebrum's consent and erasure controls. The two projects share a
+design commitment — local-first, consent-gated, no covert logging — but neither
+writes into the other's store.
+
 ## Privacy by design
 
 - Everything lives in one SQLite file at `~/.celebrum/` (override
